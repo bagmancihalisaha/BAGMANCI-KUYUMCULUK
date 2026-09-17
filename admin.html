@@ -70,6 +70,7 @@
     .secondary { background: rgba(212, 175, 55, 0.1); color: var(--gold-light); border: 1px solid var(--border); }
     .danger { background: rgba(251, 113, 133, 0.12); color: #fecdd3; border: 1px solid rgba(251, 113, 133, 0.34); }
     .status { min-height: 24px; color: var(--muted); font-size: 13px; margin-top: 12px; }
+    .price-preview { color: var(--gold-light); font-size: 13px; font-weight: 700; padding: 8px 0 0; }
     .status.ok { color: var(--green); }
     .status.err { color: var(--red); }
     .hidden { display: none; }
@@ -366,10 +367,7 @@
       <div class="grid" style="margin-top:14px;">
         <input id="editing-id" type="hidden">
         <label>Ürün Adı
-          <input id="name" placeholder="22 Ayar Bilezik Model 001" oninput="autoSlug()">
-        </label>
-        <label>Ürün ID / Link
-          <input id="id" placeholder="22-ayar-bilezik-001">
+          <input id="name" placeholder="22 Ayar Bilezik Model 001">
         </label>
         <label>Kategori
           <select id="category" onchange="CategoryAdmin.subOptions()"><option value="">Kategori seçin</option></select>
@@ -383,9 +381,6 @@
         <label>Stok Kodu
           <input id="sku" placeholder="BGM-BLZ-001">
         </label>
-        <label>Etiket
-          <input id="badge" placeholder="22 AYAR">
-        </label>
         <label>Fiyat Tipi
           <select id="price_mode" onchange="togglePriceFields()">
             <option value="liveGram">Canlı gram fiyatı</option>
@@ -393,40 +388,23 @@
           </select>
         </label>
         <label id="gram-field">Gram
-          <input id="gram" type="number" step="0.01" placeholder="24.5">
+          <input id="gram" type="number" step="0.01" placeholder="24.5" oninput="updatePricePreview()">
         </label>
         <label id="labor-type-field">İşçilik Tipi
           <select id="labor_type" onchange="togglePriceFields()">
-            <option value="gram">Gram olarak</option>
-            <option value="money">Para olarak</option>
+            <option value="gram">Tip 1: Gram üzerine eklenen işçilik</option>
+            <option value="money">Tip 2: Sabit TL işçilik</option>
           </select>
         </label>
         <label id="labor-field"><span id="labor-label">İşçilik (gr)</span>
-          <input id="labor" type="number" step="0.01" placeholder="1.25">
+          <input id="labor" type="number" step="0.01" placeholder="1.25" oninput="updatePricePreview()">
         </label>
+        <div class="full price-preview" id="price-preview">Canlı 22 ayar gram fiyatı bekleniyor.</div>
         <label id="fixed-field">Sabit Fiyat
-          <input id="fixed_price" type="number" step="1" placeholder="26800">
-        </label>
-        <label>Materyal
-          <input id="material" placeholder="Altın">
-        </label>
-        <label>Ayar
-          <input id="ayar" placeholder="22 Ayar">
-        </label>
-        <label>Renk
-          <input id="renk" placeholder="Sarı Altın">
-        </label>
-        <label>Taş
-          <input id="tas" placeholder="Tek taş / zirkon / pırlanta">
+          <input id="fixed_price" type="number" step="1" placeholder="26800" oninput="updatePricePreview()">
         </label>
         <label>Ölçü
           <input id="olcu" placeholder="Mağazada ayarlanır">
-        </label>
-        <label>Stok
-          <input id="stok" placeholder="Mağazadan teyit">
-        </label>
-        <label class="full">Kısa Açıklama
-          <textarea id="short_description" placeholder="Kartta görünecek kısa ürün tanıtımı"></textarea>
         </label>
         <label class="full">Detay Açıklama
           <textarea id="description" placeholder="Ürün detay sayfasındaki açıklama"></textarea>
@@ -593,7 +571,7 @@
       cancelled: 'İptal edildi'
     };
 
-    const ids = ['id', 'name', 'category', 'sub_category', 'order_no', 'sku', 'badge', 'price_mode', 'gram', 'labor_type', 'labor', 'fixed_price', 'material', 'ayar', 'renk', 'tas', 'olcu', 'stok', 'short_description', 'description'];
+    const ids = ['name', 'category', 'sub_category', 'order_no', 'sku', 'price_mode', 'gram', 'labor_type', 'labor', 'fixed_price', 'olcu', 'description'];
 
     function configured() {
       const cfg = window.BAGMANCI_SUPABASE || {};
@@ -861,11 +839,6 @@
         .replace(/^-+|-+$/g, '');
     }
 
-    function autoSlug() {
-      const idEl = document.getElementById('id');
-      if (!idEl.value.trim()) idEl.value = slugify(document.getElementById('name').value);
-    }
-
     function togglePriceFields() {
       const fixed = document.getElementById('price_mode').value === 'fixed';
       const laborType = document.getElementById('labor_type').value || 'gram';
@@ -873,9 +846,45 @@
       document.getElementById('labor-type-field').style.display = fixed ? 'none' : 'grid';
       document.getElementById('labor-field').style.display = fixed ? 'none' : 'grid';
       document.getElementById('fixed-field').style.display = fixed ? 'grid' : 'none';
-      document.getElementById('labor-label').innerText = laborType === 'money' ? 'İşçilik (TL)' : 'İşçilik (gr)';
+      document.getElementById('labor-label').innerText = laborType === 'money' ? 'İşçilik Tutarı (TL)' : 'İşçilik (gr)';
       document.getElementById('labor').placeholder = laborType === 'money' ? '1500' : '1.25';
       document.getElementById('labor').step = laborType === 'money' ? '1' : '0.01';
+      updatePricePreview();
+    }
+
+    let adminLive22GramPrice = 0;
+    function updatePricePreview() {
+      const preview = document.getElementById('price-preview');
+      if (!preview) return;
+      if (document.getElementById('price_mode').value === 'fixed') {
+        const fixed = numberValue('fixed_price');
+        preview.textContent = fixed ? `Önizleme: ${fixed.toLocaleString('tr-TR')} TL` : 'Sabit fiyat girin.';
+        return;
+      }
+      if (!adminLive22GramPrice) {
+        preview.textContent = 'Canlı 22 ayar gram fiyatı bekleniyor.';
+        return;
+      }
+      const gram = numberValue('gram') || 0;
+      const labor = numberValue('labor') || 0;
+      const total = formValue('labor_type') === 'money'
+        ? (gram * adminLive22GramPrice) + labor
+        : (gram + labor) * adminLive22GramPrice;
+      preview.textContent = `Önizleme: ${Math.round(total).toLocaleString('tr-TR')} TL`;
+    }
+
+    async function loadAdminLivePrice() {
+      try {
+        const response = await fetch(`/api/sukob?cache=${Date.now()}`, { cache: 'no-store' });
+        if (!response.ok) return;
+        const data = await response.json();
+        const item = data.find(row => String(row.type || '').toLowerCase().includes('22') && String(row.type || '').toLowerCase().includes('bilezik'));
+        const price = Number(item?.sellPrice);
+        if (Number.isFinite(price) && price > 0) {
+          adminLive22GramPrice = Math.round(price);
+          updatePricePreview();
+        }
+      } catch (error) {}
     }
 
 
@@ -1115,7 +1124,7 @@
     function productPayload(images) {
       const priceMode = formValue('price_mode');
       const laborType = formValue('labor_type') || 'gram';
-      const id = formValue('id') || slugify(formValue('name'));
+      const id = formValue('editing-id') || slugify(formValue('name'));
       return {
         id,
         name: formValue('name'),
@@ -1123,21 +1132,18 @@
         sub_category: formValue('sub_category'),
         order_no: numberValue('order_no') ?? 0,
         sku: formValue('sku'),
-        badge: formValue('badge'),
+        badge: '22 AYAR',
         price_mode: priceMode,
         gram: priceMode === 'liveGram' ? numberValue('gram') : null,
         labor_type: priceMode === 'liveGram' ? laborType : 'gram',
         labor: priceMode === 'liveGram' ? (numberValue('labor') || 0) : 0,
         fixed_price: priceMode === 'fixed' ? numberValue('fixed_price') : null,
         images,
-        short_description: formValue('short_description'),
         description: formValue('description'),
-        material: formValue('material'),
-        ayar: formValue('ayar'),
-        renk: formValue('renk'),
-        tas: formValue('tas'),
+        material: 'Altın',
+        ayar: '22 Ayar',
+        renk: 'Sarı Altın',
         olcu: formValue('olcu'),
-        stok: formValue('stok'),
         active: true
       };
     }
@@ -1150,9 +1156,9 @@
       try {
         setStatus('save-status', 'Kaydediliyor...');
         if (!CategoryAdmin.ready) throw Error('Önce Katalog Yönetimi alanından kategorileri yükleyin.');
-        const productId = formValue('id') || slugify(formValue('name'));
+        const productId = formValue('editing-id') || slugify(formValue('name'));
         if (!productId || !formValue('name') || !formValue('category')) {
-          setStatus('save-status', 'Ürün adı, ID ve kategori zorunlu.', 'err');
+          setStatus('save-status', 'Ürün adı ve kategori zorunlu.', 'err');
           return;
         }
 
@@ -1189,7 +1195,6 @@
 
     function clearForm() {
       document.getElementById('editing-id').value = '';
-      document.getElementById('id').readOnly = false;
       document.getElementById('product-form-title').textContent = 'Ürün Ekle';
       document.querySelector('[data-admin-tab="editor"]').textContent = 'Ürün Ekle';
       ids.forEach(id => {
@@ -1229,25 +1234,16 @@
       const item = products.find(product => product.id === id);
       if (!item) return;
       document.getElementById('editing-id').value = item.id;
-      document.getElementById('id').value = item.id || '';
-      document.getElementById('id').readOnly = true;
       document.getElementById('name').value = item.name || '';
       CategoryAdmin.options(adminCategory(item.category), item.sub_category || item.subCategory || '');
       document.getElementById('order_no').value = item.order_no ?? item.sort_order ?? 0;
       document.getElementById('sku').value = item.sku || '';
-      document.getElementById('badge').value = item.badge || '';
       document.getElementById('price_mode').value = item.price_mode || 'fixed';
       document.getElementById('gram').value = item.gram || '';
       document.getElementById('labor_type').value = item.labor_type || 'gram';
       document.getElementById('labor').value = item.labor || 0;
       document.getElementById('fixed_price').value = item.fixed_price || '';
-      document.getElementById('material').value = item.material || '';
-      document.getElementById('ayar').value = item.ayar || '';
-      document.getElementById('renk').value = item.renk || '';
-      document.getElementById('tas').value = item.tas || '';
       document.getElementById('olcu').value = item.olcu || '';
-      document.getElementById('stok').value = item.stok || '';
-      document.getElementById('short_description').value = item.short_description || '';
       document.getElementById('description').value = item.description || '';
       MediaAdmin.edit(item);
       togglePriceFields();
@@ -1635,6 +1631,7 @@
       session = data.session;
       showApp(Boolean(session));
       togglePriceFields();
+      loadAdminLivePrice();
       if (session) {
         loadProducts();
         loadOrders();

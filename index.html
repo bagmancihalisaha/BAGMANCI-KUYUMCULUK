@@ -2356,17 +2356,15 @@
       const gram = toNumber(field(row, 'gram'));
       const fixedPrice = toNumber(field(row, 'fixedPrice', 'fixed_price'));
       const labor = toNumber(field(row, 'labor')) || 0;
-      const laborType = field(row, 'laborType', 'labor_type') || 'gram';
+      const rawLaborType = String(field(row, 'laborType', 'labor_type') || 'gram').toLowerCase();
+      const laborType = ['money', 'type2', 'fixed', 'tl'].includes(rawLaborType) ? 'money' : 'gram';
       const category = field(row, 'category');
       const sku = field(row, 'sku');
-      const material = field(row, 'material');
-      const ayar = field(row, 'ayar');
-      const renk = field(row, 'renk');
-      const tas = field(row, 'tas');
+      const material = 'Altın';
+      const ayar = '22 Ayar';
+      const renk = 'Sarı Altın';
       const olcu = field(row, 'olcu');
-      const stok = field(row, 'stok');
-      const shortDescription = field(row, 'shortDescription', 'short_description');
-      const description = field(row, 'description') || shortDescription;
+      const description = field(row, 'description');
       const features = [
         ['Kategori', category],
         ['Stok Kodu', sku],
@@ -2374,9 +2372,7 @@
         ['Ayar', ayar],
         ['Gram', gram ? `${gram.toLocaleString('tr-TR')} gr` : ''],
         ['Renk', renk],
-        ['Taş', tas],
-        ['Ölçü', olcu],
-        ['Stok', stok]
+        ['Ölçü', olcu]
       ].filter(([, value]) => value !== null && value !== undefined && String(value).trim())
        .map(([label, value]) => ({ label, value: String(value) }));
 
@@ -2387,14 +2383,14 @@
         subCategory: String(field(row, 'subCategory', 'sub_category') || '').trim(),
         orderNo: toNumber(field(row, 'order_no', 'sort_order', 'orderNo')) ?? 0,
         sku,
-        badge: field(row, 'badge') || category,
+        badge: field(row, 'badge') || '22 AYAR',
         priceMode: field(row, 'priceMode', 'price_mode') || (gram ? 'liveGram' : 'fixed'),
         gram,
         labor,
         laborType,
         fixedPrice,
         images,
-        shortDescription,
+        shortDescription: description,
         description,
         features,
         sections: [
@@ -2447,9 +2443,12 @@
     }
     function productPrice(item) {
       if (item.priceMode === 'liveGram' && Number(item.gram)) {
-        const basePrice = Number(item.gram || 0) * canliBilezikFiyati;
-        const laborPrice = item.laborType === 'money' ? Number(item.labor || 0) : Number(item.labor || 0) * canliBilezikFiyati;
-        return Math.round(basePrice + laborPrice);
+        const gram = Number(item.gram || 0);
+        const labor = Number(item.labor || 0);
+        const live22GramPrice = Number(canliBilezikFiyati) || 0;
+        return Math.round(item.laborType === 'money'
+          ? (gram * live22GramPrice) + labor
+          : (gram + labor) * live22GramPrice);
       }
       return Math.round(Number(item.fixedPrice || 0));
     }
