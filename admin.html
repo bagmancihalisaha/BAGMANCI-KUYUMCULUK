@@ -1472,13 +1472,12 @@
         setStatus('announcement-status', 'Duyuru kaydedildi, push bildirimleri gönderiliyor...');
         const { data: authData } = await supabaseClient.auth.getSession();
         const token = authData.session?.access_token;
-        const response = await fetch('/api/send-push', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-          body: JSON.stringify({ announcementId: announcement.id, title, message, url: '/index.html#duyurular' })
-        });
+        const pushBody = JSON.stringify({ announcementId: announcement.id, title, message, url: '/index.html#duyurular' });
+        const pushHeaders = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+        let response = await fetch('/api/send-push', { method: 'POST', headers: pushHeaders, body: pushBody });
+        if (response.status === 404) response = await fetch('/.netlify/functions/send-push', { method: 'POST', headers: pushHeaders, body: pushBody });
         const result = await response.json().catch(() => ({}));
-        if (!response.ok) { setStatus('announcement-status', `Duyuru kaydedildi ancak push gönderilemedi: ${result.message || 'Sunucu hatası'}`, 'err'); loadAnnouncementsAdmin(); return; }
+        if (!response.ok) { setStatus('announcement-status', `Duyuru kaydedildi ancak push gönderilemedi: ${result.message || `Sunucu hatası (${response.status})`}`, 'err'); loadAnnouncementsAdmin(); return; }
         setStatus('announcement-status', `Duyuru ve ${result.sent || 0} push bildirim gönderildi.`, 'ok');
       }
       document.getElementById('announcement-title').value = '';
