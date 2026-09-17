@@ -23,9 +23,14 @@ function supabaseHeaders() {
 }
 
 async function verifyAdmin(token) {
-  const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-    headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${token}` }
-  });
+  let response;
+  try {
+    response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${token}` }
+    });
+  } catch (error) {
+    throw Error(`Supabase admin doğrulama bağlantısı başarısız: ${error.message}`);
+  }
   if (!response.ok) return false;
   const user = await response.json();
   const allowed = String(process.env.PUSH_ADMIN_EMAILS || 'bagmanciabdullah93@gmail.com').split(',').map(item => item.trim().toLowerCase()).filter(Boolean);
@@ -51,7 +56,12 @@ export default async function handler(req, res) {
   if (!title || !message) return res.status(400).json({ message: 'Başlık ve mesaj zorunlu.' });
 
   webpush.setVapidDetails(process.env.VAPID_SUBJECT, process.env.VAPID_PUBLIC_KEY, process.env.VAPID_PRIVATE_KEY);
-  const subscriptionsResponse = await fetch(`${SUPABASE_URL}/rest/v1/push_subscriptions?select=endpoint,p256dh,auth`, { headers: supabaseHeaders() });
+  let subscriptionsResponse;
+  try {
+    subscriptionsResponse = await fetch(`${SUPABASE_URL}/rest/v1/push_subscriptions?select=endpoint,p256dh,auth`, { headers: supabaseHeaders() });
+  } catch (error) {
+    throw Error(`Supabase abonelik bağlantısı başarısız: ${error.message}`);
+  }
   if (!subscriptionsResponse.ok) return res.status(502).json({ message: 'Push abonelikleri okunamadı.' });
   const subscriptions = await subscriptionsResponse.json();
   const payload = JSON.stringify({ title, body: message, url, icon: '/bk-logo.png', badge: '/bk-logo.png', tag: `announcement-${req.body?.announcementId || Date.now()}` });
