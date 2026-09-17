@@ -2356,8 +2356,12 @@
       const gram = toNumber(field(row, 'gram'));
       const fixedPrice = toNumber(field(row, 'fixedPrice', 'fixed_price'));
       const labor = toNumber(field(row, 'labor')) || 0;
-      const rawLaborType = String(field(row, 'laborType', 'labor_type') || 'gram').toLowerCase();
-      const laborType = ['money', 'type2', 'fixed', 'tl'].includes(rawLaborType) ? 'money' : 'gram';
+      const rawLaborType = String(field(row, 'laborType', 'labor_type') || 'type1').toLowerCase();
+      const laborType = ['money', 'type2', 'fixed', 'tl'].includes(rawLaborType)
+        ? 'type2'
+        : ['type3', 'pergram', 'gram_money'].includes(rawLaborType)
+          ? 'type3'
+          : 'type1';
       const category = field(row, 'category');
       const sku = field(row, 'sku');
       const material = 'Altın';
@@ -2446,9 +2450,11 @@
         const gram = Number(item.gram || 0);
         const labor = Number(item.labor || 0);
         const live22GramPrice = Number(canliBilezikFiyati) || 0;
-        return Math.round(item.laborType === 'money'
+        return Math.round(item.laborType === 'type2'
           ? (gram * live22GramPrice) + labor
-          : (gram + labor) * live22GramPrice);
+          : item.laborType === 'type3'
+            ? gram * (live22GramPrice + labor)
+            : (gram + labor) * live22GramPrice);
       }
       return Math.round(Number(item.fixedPrice || 0));
     }

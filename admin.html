@@ -392,8 +392,9 @@
         </label>
         <label id="labor-type-field">İşçilik Tipi
           <select id="labor_type" onchange="togglePriceFields()">
-            <option value="gram">Tip 1: Gram üzerine eklenen işçilik</option>
-            <option value="money">Tip 2: Sabit TL işçilik</option>
+            <option value="type1">Tip 1: Gram Üzerine Eklenen Gram İşçilik</option>
+            <option value="type2">Tip 2: Sabit Toplam TL İşçilik</option>
+            <option value="type3">Tip 3: Gram Başı TL Eklenen İşçilik</option>
           </select>
         </label>
         <label id="labor-field"><span id="labor-label">İşçilik (gr)</span>
@@ -841,14 +842,16 @@
 
     function togglePriceFields() {
       const fixed = document.getElementById('price_mode').value === 'fixed';
-      const laborType = document.getElementById('labor_type').value || 'gram';
+      const laborType = document.getElementById('labor_type').value || 'type1';
       document.getElementById('gram-field').style.display = fixed ? 'none' : 'grid';
       document.getElementById('labor-type-field').style.display = fixed ? 'none' : 'grid';
       document.getElementById('labor-field').style.display = fixed ? 'none' : 'grid';
       document.getElementById('fixed-field').style.display = fixed ? 'grid' : 'none';
-      document.getElementById('labor-label').innerText = laborType === 'money' ? 'İşçilik Tutarı (TL)' : 'İşçilik (gr)';
-      document.getElementById('labor').placeholder = laborType === 'money' ? '1500' : '1.25';
-      document.getElementById('labor').step = laborType === 'money' ? '1' : '0.01';
+      const isFixedMoney = laborType === 'type2';
+      const isPerGramMoney = laborType === 'type3';
+      document.getElementById('labor-label').innerText = isFixedMoney ? 'Sabit İşçilik (TL)' : isPerGramMoney ? 'Gram Başı İşçilik (TL)' : 'İşçilik (gr)';
+      document.getElementById('labor').placeholder = isFixedMoney || isPerGramMoney ? '1500' : '1.25';
+      document.getElementById('labor').step = isFixedMoney ? '1' : '0.01';
       updatePricePreview();
     }
 
@@ -867,9 +870,12 @@
       }
       const gram = numberValue('gram') || 0;
       const labor = numberValue('labor') || 0;
-      const total = formValue('labor_type') === 'money'
+      const laborType = formValue('labor_type');
+      const total = laborType === 'type2'
         ? (gram * adminLive22GramPrice) + labor
-        : (gram + labor) * adminLive22GramPrice;
+        : laborType === 'type3'
+          ? gram * (adminLive22GramPrice + labor)
+          : (gram + labor) * adminLive22GramPrice;
       preview.textContent = `Önizleme: ${Math.round(total).toLocaleString('tr-TR')} TL`;
     }
 
@@ -1123,7 +1129,7 @@
 
     function productPayload(images) {
       const priceMode = formValue('price_mode');
-      const laborType = formValue('labor_type') || 'gram';
+      const laborType = formValue('labor_type') || 'type1';
       const id = formValue('editing-id') || slugify(formValue('name'));
       return {
         id,
@@ -1135,7 +1141,7 @@
         badge: '22 AYAR',
         price_mode: priceMode,
         gram: priceMode === 'liveGram' ? numberValue('gram') : null,
-        labor_type: priceMode === 'liveGram' ? laborType : 'gram',
+        labor_type: priceMode === 'liveGram' ? laborType : 'type1',
         labor: priceMode === 'liveGram' ? (numberValue('labor') || 0) : 0,
         fixed_price: priceMode === 'fixed' ? numberValue('fixed_price') : null,
         images,
@@ -1205,7 +1211,7 @@
       CategoryAdmin.options('', '');
       document.getElementById('order_no').value = '0';
       document.getElementById('price_mode').value = 'liveGram';
-      document.getElementById('labor_type').value = 'gram';
+      document.getElementById('labor_type').value = 'type1';
       document.getElementById('labor').value = '0';
       document.getElementById('images').value = '';
       MediaAdmin.reset();
@@ -1240,7 +1246,7 @@
       document.getElementById('sku').value = item.sku || '';
       document.getElementById('price_mode').value = item.price_mode || 'fixed';
       document.getElementById('gram').value = item.gram || '';
-      document.getElementById('labor_type').value = item.labor_type || 'gram';
+      document.getElementById('labor_type').value = item.labor_type === 'money' ? 'type2' : item.labor_type || 'type1';
       document.getElementById('labor').value = item.labor || 0;
       document.getElementById('fixed_price').value = item.fixed_price || '';
       document.getElementById('olcu').value = item.olcu || '';
