@@ -74,6 +74,27 @@
     .status.err { color: var(--red); }
     .hidden { display: none; }
     .products { display: grid; gap: 10px; }
+    .admin-catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 185px), 1fr)); gap: 16px; }
+    .admin-catalog-grid .catalog-cover-card, .admin-catalog-grid .item-card { min-width: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); padding: 0; text-align: left; }
+    .admin-catalog-grid .catalog-cover-card:hover { border-color: var(--gold); }
+    .admin-catalog-grid .cover-box { aspect-ratio: 4 / 3; overflow: hidden; background: var(--panel); }
+    .admin-catalog-grid .item-stage { aspect-ratio: 1; overflow: hidden; background: var(--panel); display: grid; place-items: center; }
+    .admin-catalog-grid img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .admin-catalog-grid .item-stage img { object-fit: contain; }
+    .admin-catalog-grid .cover-info, .admin-catalog-grid .item-body { padding: 14px; display: grid; gap: 8px; }
+    .admin-catalog-grid .cover-title { font-family: 'Cormorant Garamond', serif; font-size: 24px; color: var(--gold-light); }
+    .admin-catalog-grid .item-title { font-size: 15px; line-height: 1.5; overflow-wrap: anywhere; }
+    .admin-catalog-grid .item-meta { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+    .admin-catalog-grid .item-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .admin-catalog-grid .item-actions button { flex: 1; min-height: 44px; padding: 10px; }
+    .admin-catalog-grid .danger { color: var(--red); }
+    .admin-catalog-grid .catalog-empty { grid-column: 1 / -1; padding: 24px 0; color: var(--muted); }
+    #admin-panel { scroll-margin-top: 100px; }
+    @media (max-width: 600px) {
+      .admin-catalog-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      .admin-catalog-grid .cover-info, .admin-catalog-grid .item-body { padding: 10px; }
+      .admin-catalog-grid .cover-title { font-size: 20px; overflow-wrap: anywhere; }
+    }
     .product-row {
       display: grid;
       grid-template-columns: 1fr auto auto;
@@ -299,6 +320,7 @@
       <div class="admin-nav-left">
         <button class="secondary" data-admin-tab="dashboard" onclick="showAdminPage('dashboard')">Kontrol Merkezi</button>
         <button class="secondary" data-admin-tab="products" onclick="showAdminPage('products')">Ürünler</button>
+        <button class="secondary" data-admin-tab="editor" onclick="startProduct()">Ürün Ekle</button>
         <button class="secondary" data-admin-tab="orders" onclick="showAdminPage('orders')">Siparişler</button>
         <button class="secondary" data-admin-tab="content" onclick="showAdminPage('content')">Sorular & Duyurular</button>
         <button class="secondary" data-admin-tab="members" onclick="showAdminPage('members')">Müşteriler</button>
@@ -317,7 +339,7 @@
       <div class="dashboard-grid">
         <button class="dashboard-card" onclick="showAdminPage('products')">
           <span class="menu-index">01</span>
-          <strong>Ürün Ekle / Çıkar</strong>
+          <strong>Ürünler</strong>
           <span>Yeni ürün gir, fotoğraf yükle, mevcut ürünleri düzenle veya sil.</span>
         </button>
         <button class="dashboard-card" onclick="showAdminPage('orders')">
@@ -339,7 +361,7 @@
     </section>
     <section class="panel hidden" id="admin-panel">
       <div class="panel-kicker">Ürün Yönetimi</div>
-      <h2>Ürün Ekle / Düzenle</h2>
+      <h2 id="product-form-title" tabindex="-1">Ürün Ekle</h2>
       <div class="grid" style="margin-top:14px;">
         <input id="editing-id" type="hidden">
         <label>Ürün Adı
@@ -420,8 +442,7 @@
       </div>
       <div class="actions">
         <button class="primary" onclick="saveProduct()">Kaydet</button>
-        <button class="secondary" onclick="clearForm()">Formu Temizle</button>
-        <button class="secondary" onclick="logout()">Çıkış</button>
+        <button class="secondary" onclick="cancelProduct()">İptal</button>
       </div>
       <div class="status" id="save-status"></div>
     </section>
@@ -537,8 +558,12 @@
     </section>
     <section class="panel hidden" id="products-panel">
       <div class="panel-kicker">Kayıtlı Ürünler</div>
-      <h2>Ürünler</h2>
-      <div class="products" id="products-list" style="margin-top:14px;"></div>
+      <div class="section-head">
+        <h2 id="catalog-title" tabindex="-1">Ürünler</h2>
+        <button class="secondary hidden" id="catalog-back" onclick="openProductCategory(null)">← Kategorilere Dön</button>
+      </div>
+      <div class="status" id="products-status" role="status"></div>
+      <div class="admin-catalog-grid" id="products-list" style="margin-top:14px;"></div>
     </section>
   </div>
 
@@ -707,7 +732,8 @@
       primeAdminAudio();
       const visible = {
         dashboard: ['dashboard-panel'],
-        products: ['admin-panel', 'products-panel'],
+        products: ['products-panel'],
+        editor: ['admin-panel'],
         orders: ['orders-panel'],
         content: ['content-panels'],
         settings: ['settings-panel'],
@@ -1140,8 +1166,10 @@
         if (error) throw error;
 
         setStatus('save-status', 'Ürün kaydedildi.', 'ok');
+        selectedProductCategory = adminCategory(payload.category);
         clearForm();
-        loadProducts();
+        showAdminPage('products');
+        setStatus('products-status', 'Ürün kaydedildi.', 'ok');
         loadOrders();
         loadQuestions();
         loadAnnouncementsAdmin();
@@ -1154,6 +1182,10 @@
     }
 
     function clearForm() {
+      document.getElementById('editing-id').value = '';
+      document.getElementById('id').readOnly = false;
+      document.getElementById('product-form-title').textContent = 'Ürün Ekle';
+      document.querySelector('[data-admin-tab="editor"]').textContent = 'Ürün Ekle';
       ids.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
@@ -1167,14 +1199,31 @@
       togglePriceFields();
     }
 
+    function startProduct() {
+      if (savingProduct) return;
+      clearForm();
+      if (selectedProductCategory) document.getElementById('category').value = selectedProductCategory;
+      setStatus('save-status', '');
+      showAdminPage('editor');
+      document.getElementById('product-form-title').focus({ preventScroll: true });
+    }
+
+    function cancelProduct() {
+      if (savingProduct) return;
+      clearForm();
+      setStatus('save-status', '');
+      showAdminPage('products');
+    }
+
     function editProduct(id) {
       if (savingProduct) return;
       const item = products.find(product => product.id === id);
       if (!item) return;
       document.getElementById('editing-id').value = item.id;
       document.getElementById('id').value = item.id || '';
+      document.getElementById('id').readOnly = true;
       document.getElementById('name').value = item.name || '';
-      document.getElementById('category').value = item.category || 'Bilezik';
+      document.getElementById('category').value = adminCategory(item.category);
       document.getElementById('sku').value = item.sku || '';
       document.getElementById('badge').value = item.badge || '';
       document.getElementById('price_mode').value = item.price_mode || 'fixed';
@@ -1192,7 +1241,11 @@
       document.getElementById('description').value = item.description || '';
       MediaAdmin.edit(item);
       togglePriceFields();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setStatus('save-status', '');
+      document.getElementById('product-form-title').textContent = 'Ürün Düzenle';
+      document.querySelector('[data-admin-tab="editor"]').textContent = 'Ürün Düzenle';
+      showAdminPage('editor');
+      document.getElementById('product-form-title').focus({ preventScroll: true });
     }
 
     async function deleteProduct(id) {
@@ -1208,20 +1261,101 @@
       loadAnnouncementsAdmin();
     }
 
+    let selectedProductCategory = null;
+    let adminCatalogAssets = {};
+
+    function adminCategory(value) {
+      const category = String(value || '').trim();
+      return category === 'Saat & Aksesuar' ? 'Saat' : category;
+    }
+
+    function openProductCategory(category) {
+      selectedProductCategory = category;
+      renderAdminCatalog();
+      document.getElementById('catalog-title').focus({ preventScroll: true });
+    }
+
+    function catalogImage(source, name, fallback = '') {
+      const image = document.createElement('img');
+      image.alt = name;
+      image.loading = 'lazy';
+      image.src = source || fallback;
+      image.onerror = () => {
+        image.onerror = null;
+        if (fallback && image.getAttribute('src') !== fallback) image.src = fallback;
+        else image.replaceWith(document.createTextNode('Görsel yok'));
+      };
+      return image;
+    }
+
+    function renderAdminCatalog() {
+      const root = document.getElementById('products-list');
+      root.replaceChildren();
+      const categories = [...new Set([...document.getElementById('category').options].map(option => option.value).concat(products.map(item => adminCategory(item.category)).filter(Boolean)))];
+      // Preserve older/custom categories so their products can still be edited.
+      categories.forEach(category => {
+        if (![...document.getElementById('category').options].some(option => option.value === category)) {
+          document.getElementById('category').add(new Option(category, category));
+        }
+      });
+      document.getElementById('catalog-title').textContent = selectedProductCategory || 'Ürünler';
+      document.getElementById('catalog-back').classList.toggle('hidden', !selectedProductCategory);
+      const imageFor = item => item.images?.[0] || item.media?.find(media => media.type === 'image')?.url || '';
+      if (!selectedProductCategory) {
+        categories.forEach(category => {
+          const items = products.filter(item => adminCategory(item.category) === category);
+          const card = document.createElement('button');
+          card.type = 'button';
+          card.className = 'catalog-cover-card';
+          card.onclick = () => openProductCategory(category);
+          card.innerHTML = `<div class="cover-box"></div><div class="cover-info"><strong class="cover-title">${escapeHtml(category)}</strong><span class="item-meta">${items.length} ürün</span></div>`;
+          card.firstElementChild.append(catalogImage(adminCatalogAssets['catalog:' + category] || imageFor(items.find(item => imageFor(item)) || {}), category, 'bk-logo.jpg'));
+          root.append(card);
+        });
+        return;
+      }
+      const items = products.filter(item => adminCategory(item.category) === selectedProductCategory);
+      if (!items.length) {
+        const empty = document.createElement('p');
+        empty.className = 'catalog-empty';
+        empty.textContent = 'Bu kategoride henüz ürün yok.';
+        root.append(empty);
+      }
+      items.forEach(item => {
+        const card = document.createElement('article');
+        card.className = 'item-card';
+        card.innerHTML = `<div class="item-stage"></div><div class="item-body"><h3 class="item-title">${escapeHtml(item.name)}</h3><span class="item-meta">${escapeHtml(item.sku || item.id)}</span><div class="item-actions"></div></div>`;
+        const stage = card.firstElementChild;
+        if (imageFor(item)) stage.append(catalogImage(imageFor(item), item.name));
+        else stage.textContent = 'Görsel yok';
+        [['Düzenle', 'secondary', editProduct], ['Sil', 'danger', deleteProduct]].forEach(([label, style, action]) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = style;
+          button.textContent = label;
+          button.setAttribute('aria-label', item.name + ': ' + label);
+          button.onclick = () => action(item.id);
+          card.querySelector('.item-actions').append(button);
+        });
+        root.append(card);
+      });
+    }
+
     async function loadProducts() {
       const { data, error } = await supabaseClient.from('products').select('*').order('created_at', { ascending: false });
       if (error) {
-        document.getElementById('products-list').innerHTML = `<p class="muted">${error.message}</p>`;
+        setStatus('products-status', error.message, 'err');
         return;
       }
       products = data || [];
-      document.getElementById('products-list').innerHTML = products.map(item => `
-        <div class="product-row">
-          <div><strong>${item.name}</strong><span>${item.category} • ${item.sku || item.id}</span></div>
-          <button class="secondary" onclick="editProduct('${item.id}')">Düzenle</button>
-          <button class="danger" onclick="deleteProduct('${item.id}')">Sil</button>
-        </div>
-      `).join('') || '<p class="muted">Henüz ürün yok.</p>';
+      renderAdminCatalog();
+      try {
+        const { data: assets, error: assetError } = await supabaseClient.from('site_assets').select('key,url');
+        if (!assetError) {
+          adminCatalogAssets = Object.fromEntries((assets || []).map(asset => [asset.key, asset.url]));
+          renderAdminCatalog();
+        }
+      } catch (error) { /* Product management remains available if cover loading fails. */ }
     }
 
 
