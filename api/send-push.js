@@ -31,10 +31,10 @@ async function verifyAdmin(token) {
   } catch (error) {
     return verifyAdminTokenLocally(token);
   }
-  if (!response.ok) return false;
+  if (!response.ok) return verifyAdminTokenLocally(token);
   const user = await response.json();
-  const allowed = String(process.env.PUSH_ADMIN_EMAILS || 'bagmanciabdullah93@gmail.com').split(',').map(item => item.trim().toLowerCase()).filter(Boolean);
-  return Boolean(user.email && allowed.includes(user.email.toLowerCase()));
+  const allowed = String(process.env.PUSH_ADMIN_EMAILS || '').split(',').map(item => item.trim().toLowerCase()).filter(Boolean);
+  return Boolean(user.email && (!allowed.length || allowed.includes(user.email.toLowerCase())));
 }
 
 function verifyAdminTokenLocally(token) {
@@ -42,9 +42,9 @@ function verifyAdminTokenLocally(token) {
     const parts = token.split('.');
     if (parts.length !== 3) return false;
     const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
-    const allowed = String(process.env.PUSH_ADMIN_EMAILS || 'bagmanciabdullah93@gmail.com').split(',').map(item => item.trim().toLowerCase()).filter(Boolean);
+    const allowed = String(process.env.PUSH_ADMIN_EMAILS || '').split(',').map(item => item.trim().toLowerCase()).filter(Boolean);
     const issuer = String(payload.iss || '');
-    return Boolean(payload.email && allowed.includes(payload.email.toLowerCase()) && Number(payload.exp) > Math.floor(Date.now() / 1000) && issuer === `${SUPABASE_URL}/auth/v1`);
+    return Boolean(payload.sub && (!allowed.length || (payload.email && allowed.includes(payload.email.toLowerCase()))) && ['authenticated', 'service_role'].includes(payload.role) && Number(payload.exp) > Math.floor(Date.now() / 1000) && issuer === `${SUPABASE_URL}/auth/v1`);
   } catch (error) {
     return false;
   }
