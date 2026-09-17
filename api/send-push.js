@@ -29,12 +29,25 @@ async function verifyAdmin(token) {
       headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${token}` }
     });
   } catch (error) {
-    throw Error(`Supabase admin doğrulama bağlantısı başarısız: ${error.message}`);
+    return verifyAdminTokenLocally(token);
   }
   if (!response.ok) return false;
   const user = await response.json();
   const allowed = String(process.env.PUSH_ADMIN_EMAILS || 'bagmanciabdullah93@gmail.com').split(',').map(item => item.trim().toLowerCase()).filter(Boolean);
   return Boolean(user.email && allowed.includes(user.email.toLowerCase()));
+}
+
+function verifyAdminTokenLocally(token) {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return false;
+    const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
+    const allowed = String(process.env.PUSH_ADMIN_EMAILS || 'bagmanciabdullah93@gmail.com').split(',').map(item => item.trim().toLowerCase()).filter(Boolean);
+    const issuer = String(payload.iss || '');
+    return Boolean(payload.email && allowed.includes(payload.email.toLowerCase()) && Number(payload.exp) > Math.floor(Date.now() / 1000) && issuer === `${SUPABASE_URL}/auth/v1`);
+  } catch (error) {
+    return false;
+  }
 }
 
 export default async function handler(req, res) {
