@@ -394,7 +394,7 @@
           <select id="labor_type" onchange="togglePriceFields()">
             <option value="type1">Tip 1: Gram Üzerine Eklenen Gram İşçilik</option>
             <option value="type2">Tip 2: Sabit Toplam TL İşçilik</option>
-            <option value="type3">Tip 3: Gram Başı TL Eklenen İşçilik</option>
+            <option value="type3">Tip 3: Gram x (Canlı Kur + TL İşçilik)</option>
           </select>
         </label>
         <label id="labor-field"><span id="labor-label">İşçilik (gr)</span>
@@ -849,7 +849,7 @@
       document.getElementById('fixed-field').style.display = fixed ? 'grid' : 'none';
       const isFixedMoney = laborType === 'type2';
       const isPerGramMoney = laborType === 'type3';
-      document.getElementById('labor-label').innerText = isFixedMoney ? 'Sabit İşçilik (TL)' : isPerGramMoney ? 'Gram Başı İşçilik (TL)' : 'İşçilik (gr)';
+      document.getElementById('labor-label').innerText = isFixedMoney ? 'Sabit İşçilik (TL)' : isPerGramMoney ? 'Gram Başı Eklenen TL İşçilik' : 'İşçilik (gr)';
       document.getElementById('labor').placeholder = isFixedMoney || isPerGramMoney ? '1500' : '1.25';
       document.getElementById('labor').step = isFixedMoney ? '1' : '0.01';
       updatePricePreview();
