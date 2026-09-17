@@ -2059,18 +2059,7 @@
 
     let catalogProducts = [];
     let productsLoaded = false;
-    const catalogCategories = [
-      { name: 'Yüzük', kicker: 'Koleksiyon', fallback: 'vitrin.jpg' },
-      { name: 'Küpe', kicker: 'Koleksiyon', fallback: 'vitrin.jpg' },
-      { name: 'Bilezik', kicker: '22 Ayar', fallback: 'vitrin.jpg' },
-      { name: 'Bileklik', kicker: 'Seçki', fallback: 'vitrin.jpg' },
-      { name: 'Kolye', kicker: 'Özel Seri', fallback: 'vitrin.jpg' },
-      { name: 'Madonna', kicker: 'İmalat', fallback: 'vitrin.jpg' },
-      { name: 'Frenk Bağı', kicker: 'Yöresel', fallback: 'vitrin.jpg' },
-      { name: 'Urfa Akıtması', kicker: 'Yöresel', fallback: 'vitrin.jpg' },
-      { name: 'Saat', kicker: 'Saat', fallback: 'vitrin.jpg' },
-      { name: 'Aksesuar', kicker: 'Aksesuar', fallback: 'vitrin.jpg' }
-    ];
+    let catalogCategories = [];
 
     const SUKOB_DIRECT_URL = 'https://www.sukobfiyat.com/api/prices/';
     const SUKOB_PROXY_URL = '/api/sukob';
@@ -2816,30 +2805,37 @@
       event.target.value = '';
     }
     function catalogCoverImage(category, products) {
+      if (category.cover_image) return category.cover_image;
       const configured = window.BagmanciSiteAssets?.['catalog:' + category.name];
       if (configured) return configured;
       const found = products.find(item => normalizeCategoryName(item.category) === category.name && Array.isArray(item.images) && item.images.length && item.images[0]);
-      return found ? found.images[0] : category.fallback;
+      return found ? found.images[0] : (category.fallback || 'bk-logo.jpg');
     }
 
     function renderCatalogCovers(products = catalogProducts) {
       const container = document.getElementById('catalogCoversView');
       if (!container) return;
-      container.innerHTML = catalogCategories.map(category => {
+      container.replaceChildren();
+      catalogCategories.forEach(category => {
         const image = catalogCoverImage(category, products);
-        return `
-          <div class="catalog-cover-card" onclick="katalogAc('${category.name.replace(/'/g, "\\'")}')">
+        const card = document.createElement('div');
+        card.className = 'catalog-cover-card';
+        card.tabIndex = 0; card.setAttribute('role', 'button');
+        card.onclick = () => katalogAc(category.name);
+        card.onkeydown = event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); card.click(); } };
+        card.innerHTML = `
             <div class="cover-box">
-              <img src="${image}" alt="${category.name}" onerror="this.src='vitrin.jpg'">
-              <span class="cover-kicker">${category.kicker}</span>
+              <img alt="${escapeText(category.name)}" onerror="this.onerror=null;this.src='bk-logo.jpg'">
+              <span class="cover-kicker">${escapeText(category.kicker || 'Koleksiyon')}</span>
             </div>
             <div class="cover-info">
-              <div class="cover-title">${category.name}</div>
+              <div class="cover-title">${escapeText(category.name)}</div>
               <span class="btn-open">İncele</span>
             </div>
-          </div>
         `;
-      }).join('');
+        card.querySelector('img').src = image;
+        container.append(card);
+      });
     }
     let activeCatalogCategory = '';
     let activeCatalogModel = '';
@@ -3835,5 +3831,6 @@
     setInterval(fetchVisitorCount, 10000);
   </script>
   <script src="site-media.js?v=20260911-2"></script>
+  <script src="catalog-categories.js"></script>
 </body>
 </html>

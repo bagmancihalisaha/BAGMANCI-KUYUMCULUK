@@ -246,7 +246,7 @@ const MediaAdmin = (() => {
   panel.append(el('h2', '', 'Site Ayarları'));
   const menu = el('div', 'site-settings-menu');
   for (const [key, title] of [['images', 'Site Görselleri'], ['catalog', 'Katalog']]) {
-    const link = button('', () => showSiteSection(key), title);
+    const link = button('', () => key === 'catalog' ? showAdminPage('categories') : showSiteSection(key), title);
     link.append(el('span', '', title));
     const arrow = el('span', '', '›'); arrow.setAttribute('aria-hidden', 'true'); link.append(arrow);
     menu.append(link);
