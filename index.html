@@ -738,13 +738,20 @@
       cursor: pointer;
     }
 
+    .catalog-filters { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 16px; margin-bottom: 8px; }
+    .catalog-chip { flex: 0 0 auto; border: 1px solid var(--gold-primary); border-radius: 999px; padding: 9px 16px; background: transparent; color: var(--text-pearl); font: inherit; font-size: 12px; cursor: pointer; }
+    .catalog-chip[aria-pressed="true"] { background: var(--gold-primary); color: #06251b; font-weight: 700; }
+    .catalog-chip:focus-visible { outline: 2px solid var(--gold-primary); outline-offset: 2px; }
     .products-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(220px, 240px));
+      justify-content: center;
       gap: 18px;
       align-items: start;
     }
     .item-card {
+      width: 100%;
+      max-width: 240px;
       background: linear-gradient(180deg, rgba(5, 18, 14, 0.96), rgba(2, 7, 6, 0.98));
       border: 1px solid rgba(212, 175, 55, 0.34);
       border-radius: 10px;
@@ -764,7 +771,7 @@
       position: relative;
       width: 100%;
       aspect-ratio: 1 / 1;
-      min-height: 260px;
+      min-height: 0;
       background: #f7f4ee;
       display: grid;
       place-items: center;
@@ -888,7 +895,7 @@
       .cat-title::before,
       .cat-title::after { width: 28px; }
       .products-grid { grid-template-columns: minmax(0, 1fr); }
-      .item-stage { min-height: 250px; }
+      .item-stage { min-height: 0; }
     }
     /* BAR */
     .app-bar {
@@ -974,12 +981,12 @@
       .item-card { border-radius: 8px !important; box-shadow: 0 12px 24px rgba(0,0,0,0.34) !important; }
       .item-stage {
         min-height: 0 !important;
-        aspect-ratio: 3 / 4 !important;
+        aspect-ratio: 1 / 1 !important;
       }
       .item-stage img { object-fit: cover !important; object-position: center !important; }
       .item-hallmark { top: 8px !important; right: 8px !important; font-size: 8px !important; padding: 3px 7px !important; }
       .item-body { padding: 10px 9px 12px !important; gap: 5px !important; }
-      .item-title { font-size: 15.5px !important; min-height: 36px !important; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+      .item-title { font-size: 15px !important; min-height: 34px !important; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
       .item-meta { font-size: 10.5px !important; min-height: 15px !important; }
       .item-price { font-size: 16px !important; margin: 3px 0 2px !important; }
       .item-actions { grid-template-columns: 38px 1fr !important; gap: 7px !important; }
@@ -1638,6 +1645,7 @@
         <button class="btn-back" onclick="katalogKapat()">← Kataloglara Dön</button>
         <h3 id="currentCatTitle" class="cat-title"></h3>
       </div>
+      <div id="catalogFilters" class="catalog-filters" role="group" aria-label="Model tipi"></div>
       <div id="catalogItemsContainer" class="products-grid"></div>
     </div>
   </section>
@@ -2387,6 +2395,8 @@
         id: field(row, 'id'),
         name: field(row, 'name'),
         category,
+        subCategory: String(field(row, 'subCategory', 'sub_category') || '').trim(),
+        orderNo: toNumber(field(row, 'order_no', 'sort_order', 'orderNo')) ?? 0,
         sku,
         badge: field(row, 'badge') || category,
         priceMode: field(row, 'priceMode', 'price_mode') || (gram ? 'liveGram' : 'fixed'),
@@ -2411,11 +2421,15 @@
       const cfg = window.BAGMANCI_SUPABASE || {};
       if (!cfg.url || !cfg.anonKey || !window.supabase) return [];
       const client = window.supabase.createClient(cfg.url, cfg.anonKey);
-      const { data, error } = await client
+      let { data, error } = await client
         .from('products')
         .select('*')
         .eq('active', true)
+        .order('order_no', { ascending: true })
         .order('created_at', { ascending: false });
+      if (error && /order_no/.test(error.message || '')) {
+        ({ data, error } = await client.from('products').select('*').eq('active', true).order('created_at', { ascending: false }));
+      }
       if (error) throw error;
       return (data || []).map(tableRowToProduct);
     }
@@ -2827,7 +2841,39 @@
         `;
       }).join('');
     }
+    let activeCatalogCategory = '';
+    let activeCatalogModel = '';
+    const catalogModel = item => String(item.subCategory || item.sub_category || '').trim();
+    const catalogModelKey = value => value.toLocaleLowerCase('tr-TR');
+    const catalogOrder = item => Number(item.orderNo ?? item.order_no ?? item.sort_order) || 0;
+
+    function renderCatalogFilters(items) {
+      const root = document.getElementById('catalogFilters');
+      root.replaceChildren();
+      const models = new Map();
+      items.forEach(item => {
+        const label = catalogModel(item);
+        if (label) models.set(catalogModelKey(label), label);
+      });
+      [['', 'Tümü'], ...models].forEach(([key, label]) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'catalog-chip';
+        button.textContent = label;
+        button.setAttribute('aria-pressed', String(key === activeCatalogModel));
+        button.onclick = () => {
+          activeCatalogModel = key;
+          root.querySelectorAll('button').forEach(chip => chip.setAttribute('aria-pressed', String(chip === button)));
+          renderCatalogItems(items);
+        };
+        root.append(button);
+      });
+    }
+
     async function katalogAc(kategoriAdi) {
+      activeCatalogCategory = kategoriAdi;
+      activeCatalogModel = '';
+      document.getElementById('catalogFilters').replaceChildren();
       document.getElementById('catalogCoversView').style.display = 'none';
       const innerView = document.getElementById('catalogItemsView');
       innerView.style.display = 'block';
@@ -2837,11 +2883,19 @@
       container.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:var(--text-muted); padding:20px;">Ürünler yükleniyor...</div>';
 
       const products = await loadCatalogProducts();
-      const categoryProducts = products.filter(item => normalizeCategoryName(item.category) === kategoriAdi);
+      if (activeCatalogCategory !== kategoriAdi) return;
+      const categoryProducts = products.filter(item => normalizeCategoryName(item.category) === kategoriAdi).sort((a, b) => catalogOrder(a) - catalogOrder(b));
+      renderCatalogFilters(categoryProducts);
+      renderCatalogItems(categoryProducts);
+      scrollToSectionTop('katalog');
+    }
+
+    function renderCatalogItems(items) {
+      const container = document.getElementById('catalogItemsContainer');
+      const categoryProducts = items.filter(item => !activeCatalogModel || catalogModelKey(catalogModel(item)) === activeCatalogModel);
 
       if (!categoryProducts.length) {
         container.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:var(--text-muted); padding:20px;">Bu kategoriye ürün eklenmedi.</div>';
-        scrollToSectionTop('katalog');
         return;
       }
 
@@ -2871,9 +2925,10 @@
         `;
       }).join('');
 
-      scrollToSectionTop('katalog');
     }
     function katalogKapat() {
+      activeCatalogCategory = '';
+      activeCatalogModel = '';
       document.getElementById('catalogItemsView').style.display = 'none';
       document.getElementById('catalogCoversView').style.display = 'grid';
       scrollToSectionTop('katalog');

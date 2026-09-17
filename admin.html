@@ -384,6 +384,12 @@
             <option>Aksesuar</option>
           </select>
         </label>
+        <label>Alt Kategori (Model Tipi)
+          <input id="sub_category" placeholder="Kelepçe, Burma, Baget, Tektaş, Ajda" maxlength="100">
+        </label>
+        <label>Sıralama / Öncelik (Order No)
+          <input id="order_no" type="number" step="1" value="0">
+        </label>
         <label>Stok Kodu
           <input id="sku" placeholder="BGM-BLZ-001">
         </label>
@@ -597,7 +603,7 @@
       cancelled: 'İptal edildi'
     };
 
-    const ids = ['id', 'name', 'category', 'sku', 'badge', 'price_mode', 'gram', 'labor_type', 'labor', 'fixed_price', 'material', 'ayar', 'renk', 'tas', 'olcu', 'stok', 'short_description', 'description'];
+    const ids = ['id', 'name', 'category', 'sub_category', 'order_no', 'sku', 'badge', 'price_mode', 'gram', 'labor_type', 'labor', 'fixed_price', 'material', 'ayar', 'renk', 'tas', 'olcu', 'stok', 'short_description', 'description'];
 
     function configured() {
       const cfg = window.BAGMANCI_SUPABASE || {};
@@ -1122,6 +1128,8 @@
         id,
         name: formValue('name'),
         category: formValue('category'),
+        sub_category: formValue('sub_category'),
+        order_no: numberValue('order_no') ?? 0,
         sku: formValue('sku'),
         badge: formValue('badge'),
         price_mode: priceMode,
@@ -1156,6 +1164,8 @@
         }
 
         const editingId = formValue('editing-id');
+        const orderNo = Number(formValue('order_no') || 0);
+        if (!Number.isInteger(orderNo) || orderNo < -2147483648 || orderNo > 2147483647) throw Error('Sıralama için geçerli bir tam sayı girin.');
         const current = products.find(item => item.id === editingId || item.id === productId);
         if (current && !editingId) throw Error('Bu ürün ID zaten kayıtlı. Ürünü listeden Düzenle ile açın.');
         const media = await MediaAdmin.save(productId);
@@ -1163,7 +1173,10 @@
         payload.media = media;
 
         const { error } = await supabaseClient.from('products').upsert(payload, { onConflict: 'id' });
-        if (error) throw error;
+        if (error) {
+          if (/sub_category|order_no/.test(error.message || '')) throw Error('Yeni alanlar için supabase-catalog.sql dosyasını Supabase SQL Editor üzerinden çalıştırın.');
+          throw error;
+        }
 
         setStatus('save-status', 'Ürün kaydedildi.', 'ok');
         selectedProductCategory = adminCategory(payload.category);
@@ -1191,6 +1204,7 @@
         if (el) el.value = '';
       });
       document.getElementById('category').value = 'Bilezik';
+      document.getElementById('order_no').value = '0';
       document.getElementById('price_mode').value = 'liveGram';
       document.getElementById('labor_type').value = 'gram';
       document.getElementById('labor').value = '0';
@@ -1224,6 +1238,8 @@
       document.getElementById('id').readOnly = true;
       document.getElementById('name').value = item.name || '';
       document.getElementById('category').value = adminCategory(item.category);
+      document.getElementById('sub_category').value = item.sub_category || item.subCategory || '';
+      document.getElementById('order_no').value = item.order_no ?? item.sort_order ?? 0;
       document.getElementById('sku').value = item.sku || '';
       document.getElementById('badge').value = item.badge || '';
       document.getElementById('price_mode').value = item.price_mode || 'fixed';
@@ -1342,7 +1358,10 @@
     }
 
     async function loadProducts() {
-      const { data, error } = await supabaseClient.from('products').select('*').order('created_at', { ascending: false });
+      let { data, error } = await supabaseClient.from('products').select('*').order('order_no', { ascending: true }).order('created_at', { ascending: false });
+      if (error && /order_no/.test(error.message || '')) {
+        ({ data, error } = await supabaseClient.from('products').select('*').order('created_at', { ascending: false }));
+      }
       if (error) {
         setStatus('products-status', error.message, 'err');
         return;
