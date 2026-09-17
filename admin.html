@@ -463,6 +463,10 @@
               <option value="false">Pasif kaydet</option>
             </select>
           </label>
+          <label class="full" style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+            <input id="announcement-push" type="checkbox" style="width:auto;">
+            <span>Tüm kayıtlı cihazlara Push Bildirim olarak da gönder</span>
+          </label>
         </div>
         <div class="actions"><button class="primary" onclick="saveAnnouncement()">Duyuruyu Yayınla</button></div>
         <div class="status" id="announcement-status"></div>
@@ -1459,13 +1463,28 @@
       const title = document.getElementById('announcement-title').value.trim();
       const message = document.getElementById('announcement-message').value.trim();
       const active = document.getElementById('announcement-active').value === 'true';
+      const sendPush = document.getElementById('announcement-push').checked;
       if (!title || !message) { setStatus('announcement-status', 'Başlık ve duyuru metni zorunlu.', 'err'); return; }
       setStatus('announcement-status', 'Yayınlanıyor...');
-      const { error } = await supabaseClient.from('announcements').insert({ title, message, active });
+      const { data: announcement, error } = await supabaseClient.from('announcements').insert({ title, message, active }).select('id').single();
       if (error) { setStatus('announcement-status', error.message, 'err'); return; }
+      if (sendPush) {
+        setStatus('announcement-status', 'Duyuru kaydedildi, push bildirimleri gönderiliyor...');
+        const { data: authData } = await supabaseClient.auth.getSession();
+        const token = authData.session?.access_token;
+        const response = await fetch('/api/send-push', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+          body: JSON.stringify({ announcementId: announcement.id, title, message, url: '/index.html#duyurular' })
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) { setStatus('announcement-status', `Duyuru kaydedildi ancak push gönderilemedi: ${result.message || 'Sunucu hatası'}`, 'err'); loadAnnouncementsAdmin(); return; }
+        setStatus('announcement-status', `Duyuru ve ${result.sent || 0} push bildirim gönderildi.`, 'ok');
+      }
       document.getElementById('announcement-title').value = '';
       document.getElementById('announcement-message').value = '';
-      setStatus('announcement-status', 'Duyuru kaydedildi.', 'ok');
+      document.getElementById('announcement-push').checked = false;
+      if (!sendPush) setStatus('announcement-status', 'Duyuru kaydedildi.', 'ok');
       loadAnnouncementsAdmin();
     }
 

@@ -1,0 +1,22 @@
+WEB PUSH KURULUMU
+
+1) Supabase SQL Editor'da supabase-push.sql dosyasinin tamamini bir kez calistir.
+
+2) Hosting ortam degiskenlerini ekle:
+   SUPABASE_URL=https://<proje>.supabase.co
+   SUPABASE_SERVICE_ROLE_KEY=<Supabase service_role key>
+   VAPID_SUBJECT=mailto:bagmanciabdullah93@gmail.com
+   VAPID_PUBLIC_KEY=<public key>
+   VAPID_PRIVATE_KEY=<private key>
+   PUSH_ADMIN_EMAILS=bagmanciabdullah93@gmail.com
+
+3) VAPID anahtari uretmek icin proje klasorunde:
+   npx web-push generate-vapid-keys
+
+   Komutun verdigi publicKey'i VAPID_PUBLIC_KEY, privateKey'i VAPID_PRIVATE_KEY olarak kaydet.
+
+4) Ortam degiskenlerini hosting panelinde tanimladiktan sonra yeni deploy yap.
+   VAPID_PRIVATE_KEY ve SUPABASE_SERVICE_ROLE_KEY'i kaynak dosyalarina yazma.
+
+5) index.html Bildirimler > Ayarlar icinden Bildirimleri Ac ile abonelik olustur.
+   Admin > Sorular & Duyurular > Duyuru Gonder alaninda push kutusunu isaretleyerek gonder.

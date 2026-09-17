@@ -21,9 +21,49 @@
       setTimeout(() => opening.remove(), 2500);
     }
   }
+  let serviceWorkerRegistration;
+  async function getPushConfig() {
+    const response = await fetch('/api/push-config', { cache: 'no-store' });
+    if (!response.ok) throw new Error('Push ayarı alınamadı.');
+    return response.json();
+  }
+  function decodeVapidKey(value) {
+    const padding = '='.repeat((4 - value.length % 4) % 4);
+    const base64 = (value + padding).replace(/-/g, '+').replace(/_/g, '/');
+    return Uint8Array.from(atob(base64), char => char.charCodeAt(0));
+  }
+  async function setupPushNotifications(requestPermission = false) {
+    if (!('serviceWorker' in navigator) || !window.isSecureContext || !('PushManager' in window) || !('Notification' in window)) return false;
+    if (Notification.permission === 'denied') return false;
+    if (Notification.permission === 'default' && requestPermission) {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') return false;
+    }
+    if (Notification.permission !== 'granted') return false;
+    serviceWorkerRegistration ||= await navigator.serviceWorker.ready;
+    const config = await getPushConfig();
+    let subscription = await serviceWorkerRegistration.pushManager.getSubscription();
+    if (!subscription) subscription = await serviceWorkerRegistration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: decodeVapidKey(config.publicKey) });
+    const json = subscription.toJSON();
+    const supabaseConfig = window.BAGMANCI_SUPABASE || {};
+    if (!supabaseConfig.url || !supabaseConfig.anonKey || !json.endpoint || !json.keys?.p256dh || !json.keys?.auth) return false;
+    const response = await fetch(`${supabaseConfig.url}/rest/v1/push_subscriptions?on_conflict=endpoint`, {
+      method: 'POST',
+      headers: { apikey: supabaseConfig.anonKey, Authorization: `Bearer ${supabaseConfig.anonKey}`, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({ endpoint: json.endpoint, p256dh: json.keys.p256dh, auth: json.keys.auth, subscription: json, user_agent: navigator.userAgent })
+    });
+    if (!response.ok) throw new Error('Push aboneliği kaydedilemedi.');
+    window.dispatchEvent(new CustomEvent('bk-push-ready'));
+    return true;
+  }
+  window.BKPush = { setup: setupPushNotifications };
   if ('serviceWorker' in navigator && window.isSecureContext) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').catch(error => console.warn('Uygulama desteği başlatılamadı.', error));
+      navigator.serviceWorker.register('./sw.js').then(registration => {
+        serviceWorkerRegistration = registration;
+        if (Notification.permission === 'granted') return setupPushNotifications(false);
+        return null;
+      }).catch(error => console.warn('Uygulama desteği başlatılamadı.', error));
     });
   }
   let installEvent;
@@ -36,7 +76,7 @@
     if (!dialog) {
       dialog = document.createElement('dialog'); dialog.id = 'bk-install-dialog';
       dialog.setAttribute('aria-labelledby','bk-install-title');
-      dialog.innerHTML = '<img src="bk-logo.png" alt="BK"><h2 id="bk-install-title">BK'yı Ana Ekrana Ekle</h2><ol><li>Safari'de <strong>Paylaş</strong> menüsünü aç.</li><li><strong>Ana Ekrana Ekle</strong> seçeneğine dokun.</li><li>Adı <strong>BK</strong> olarak bırak. Varsa <strong>Web Uygulaması Olarak Aç</strong> seçeneğini açıp <strong>Ekle</strong>ye dokun.</li></ol>';
+      dialog.innerHTML = `<img src="bk-logo.png" alt="BK"><h2 id="bk-install-title">BK'yı Ana Ekrana Ekle</h2><ol><li>Safari'de <strong>Paylaş</strong> menüsünü aç.</li><li><strong>Ana Ekrana Ekle</strong> seçeneğine dokun.</li><li>Adı <strong>BK</strong> olarak bırak. Varsa <strong>Web Uygulaması Olarak Aç</strong> seçeneğini açıp <strong>Ekle</strong>ye dokun.</li></ol>`;
       const close = document.createElement('button'); close.type = 'button'; close.textContent = 'Tamam'; close.onclick = () => dialog.close();
       dialog.append(close); document.body.append(dialog);
       dialog.addEventListener('close', () => button.focus());
@@ -55,4 +95,7 @@
     finally { installEvent = null; }
   };
   window.addEventListener('appinstalled', () => { button.hidden = true; installEvent = null; });
+  window.addEventListener('load', () => {
+    setTimeout(() => { if ('Notification' in window && Notification.permission === 'default') setupPushNotifications(true).catch(() => {}); }, 1200);
+  });
 })();

@@ -3746,8 +3746,26 @@
         ['price', 'Fiyat Güncellemeleri', 'Canlı kur ve seçili ürün fiyat değişimlerinden haberdar ol.', 'fa-chart-line'],
         ['campaign', 'Fırsatlar ve Tanıtımlar', 'Yeni koleksiyon ve mağaza fırsatlarını kaçırma.', 'fa-gem']
       ];
-      box.innerHTML = rows.map(([key, title, text, icon]) => `<div class="setting-row"><i class="fa-solid ${icon}"></i><span><strong>${title}</strong><p>${text}</p></span><button class="toggle-pill ${settings[key] ? 'on' : ''}" type="button" onclick="toggleNotificationSetting('${key}')" aria-label="${title}"></button></div>`).join('');
+      box.innerHTML = `<div class="setting-row"><i class="fa-solid fa-bell"></i><span><strong>Web Push Bildirimleri</strong><p>Site kapalıyken yeni duyurulardan haberdar ol.</p></span><button class="toggle-pill" id="pushPermissionButton" type="button" onclick="enablePushNotifications()" aria-label="Bildirimleri Aç">Aç</button></div>${rows.map(([key, title, text, icon]) => `<div class="setting-row"><i class="fa-solid ${icon}"></i><span><strong>${title}</strong><p>${text}</p></span><button class="toggle-pill ${settings[key] ? 'on' : ''}" type="button" onclick="toggleNotificationSetting('${key}')" aria-label="${title}"></button></div>`).join('')}`;
+      updatePushButton();
     }
+    function updatePushButton() {
+      const button = document.getElementById('pushPermissionButton');
+      if (!button) return;
+      const granted = 'Notification' in window && Notification.permission === 'granted';
+      button.textContent = granted ? 'Açık' : 'Aç';
+      button.classList.toggle('on', granted);
+      button.disabled = granted;
+    }
+    async function enablePushNotifications() {
+      try {
+        if (!window.BKPush) throw new Error('Bildirim altyapısı henüz hazır değil.');
+        await window.BKPush.setup(true);
+        updatePushButton();
+        renderNotificationSettings();
+      } catch (error) { alert(error.message || 'Bildirimler açılamadı.'); }
+    }
+    window.addEventListener('bk-push-ready', updatePushButton);
     function showNotificationTab(tab) {
       document.querySelectorAll('[data-notification-tab]').forEach(btn => btn.classList.toggle('active', btn.dataset.notificationTab === tab));
       document.getElementById('notificationAllSection')?.classList.toggle('active', tab === 'all' || tab === 'seller');
@@ -3814,6 +3832,7 @@
 
     if (window.location.hash === '#sepet') setTimeout(() => modalGoster('sepetModal'), 150);
     if (window.location.hash === '#account-history') setTimeout(() => { openAccountModal(); openAccountSection('history'); }, 180);
+    if (window.location.hash === '#duyurular') setTimeout(() => openAnnouncementModal(), 180);
     if (window.location.hash === '#account-messages') setTimeout(() => openQuestionModal({ returnTo: 'account', tab: 'seller' }), 180);
     if (window.location.hash === '#account-assistant') setTimeout(() => { openAccountModal(); openAccountSection('assistant'); }, 180);
     if (window.location.hash.startsWith('#search')) { const hashQuery = new URLSearchParams(window.location.hash.split('?')[1] || '').get('q') || ''; setTimeout(() => openSearchPage(false, hashQuery), 180); }
