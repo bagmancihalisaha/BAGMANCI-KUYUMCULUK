@@ -2025,6 +2025,7 @@
     let previousMarketPrices = {};
     let publicAnnouncements = [];
     let notificationsLoaded = false;
+    let browserAnnouncementIds = new Set();
     const READ_ANNOUNCEMENTS_KEY = 'bagmanciReadAnnouncements';
     const NOTIFICATION_SETTINGS_KEY = 'bagmanciNotificationSettings';
     const defaultNotificationSettings = { seller: true, product: true, order: true, price: true, campaign: true };
@@ -3759,8 +3760,12 @@
     }
     async function enablePushNotifications() {
       try {
-        if (!window.BKPush) throw new Error('Bildirim altyapısı henüz hazır değil.');
-        await window.BKPush.setup(true);
+        if (!('Notification' in window)) throw new Error('Bu tarayıcı bildirimleri desteklemiyor.');
+        if (window.BKPush) {
+          try { await window.BKPush.setup(true); } catch (error) { await Notification.requestPermission(); }
+        } else {
+          await Notification.requestPermission();
+        }
         updatePushButton();
         renderNotificationSettings();
       } catch (error) { alert(error.message || 'Bildirimler açılamadı.'); }
@@ -3811,9 +3816,21 @@
       if (!notificationsLoaded) list.innerHTML = '<p style="color:#68716d; font-size:14px; padding:18px;">Bildirimler yükleniyor...</p>';
       const { data, error } = await client.from('announcements').select('id,title,message,created_at').eq('active', true).order('created_at', { ascending: false }).limit(30);
       if (error) { list.innerHTML = `<p style="color:#b42318; font-size:14px; padding:18px;">${escapeText(error.message)}</p>`; return; }
-      publicAnnouncements = data || [];
+      const incoming = data || [];
+      if (notificationsLoaded) showNewBrowserAnnouncements(incoming);
+      else browserAnnouncementIds = new Set(incoming.map(item => item.id));
+      publicAnnouncements = incoming;
       notificationsLoaded = true;
       renderAnnouncementRows();
+    }
+    function showNewBrowserAnnouncements(items) {
+      if (!('Notification' in window) || Notification.permission !== 'granted') return;
+      items.filter(item => item.id && !browserAnnouncementIds.has(item.id)).forEach(item => {
+        browserAnnouncementIds.add(item.id);
+        const notify = () => new Notification(item.title || 'Bağmancı Kuyumculuk', { body: item.message || 'Yeni duyuru yayınlandı.', icon: './bk-logo.png', tag: `announcement-${item.id}` });
+        if (navigator.serviceWorker?.controller) navigator.serviceWorker.ready.then(registration => registration.showNotification(item.title || 'Bağmancı Kuyumculuk', { body: item.message || 'Yeni duyuru yayınlandı.', icon: './bk-logo.png', data: { url: './index.html#duyurular' }, tag: `announcement-${item.id}` })).catch(notify);
+        else notify();
+      });
     }
     function modalGoster(id) {
       document.getElementById(id).style.display = 'flex';
@@ -3853,6 +3870,7 @@
     setInterval(updateClock, 1000);
     setInterval(fetchMarketData, 1000);
     setInterval(fetchVisitorCount, 10000);
+    setInterval(() => loadPublicAnnouncements().catch(() => {}), 30000);
   </script>
   <script src="site-media.js?v=20260911-2"></script>
   <script src="catalog-categories.js"></script>

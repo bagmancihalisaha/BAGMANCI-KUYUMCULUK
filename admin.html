@@ -1469,28 +1469,7 @@
       const { data: announcement, error } = await supabaseClient.from('announcements').insert({ title, message, active }).select('id').single();
       if (error) { setStatus('announcement-status', error.message, 'err'); return; }
       if (sendPush) {
-        setStatus('announcement-status', 'Duyuru kaydedildi, push bildirimleri gönderiliyor...');
-        const { data: authData } = await supabaseClient.auth.getSession();
-        const token = authData.session?.access_token;
-        const pushBody = JSON.stringify({ announcementId: announcement.id, title, message, url: '/index.html#duyurular' });
-        const pushHeaders = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
-        let response;
-        try {
-          response = await fetch('/api/send-push', { method: 'POST', headers: pushHeaders, body: pushBody });
-        } catch (error) {
-          response = null;
-        }
-        if (!response || response.status === 404 || response.status >= 500) {
-          try {
-            response = await fetch('/.netlify/functions/send-push', { method: 'POST', headers: pushHeaders, body: pushBody });
-          } catch (error) {
-            response = null;
-          }
-        }
-        if (!response) { setStatus('announcement-status', 'Duyuru kaydedildi ancak push sunucusuna ulaşılamadı.', 'err'); loadAnnouncementsAdmin(); return; }
-        const result = await response.json().catch(() => ({}));
-        if (!response.ok) { setStatus('announcement-status', `Duyuru kaydedildi ancak push gönderilemedi: ${result.message || `Sunucu hatası (${response.status})`}`, 'err'); loadAnnouncementsAdmin(); return; }
-        setStatus('announcement-status', `Duyuru ve ${result.sent || 0} push bildirim gönderildi.`, 'ok');
+        setStatus('announcement-status', 'Duyuru kaydedildi. Siteyi açık olan cihazlara tarayıcı bildirimi gösterilecek.', 'ok');
       }
       document.getElementById('announcement-title').value = '';
       document.getElementById('announcement-message').value = '';
