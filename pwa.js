@@ -23,8 +23,9 @@
   }
   let serviceWorkerRegistration;
   async function getPushConfig() {
-    let response = await fetch('/api/push-config', { cache: 'no-store' });
-    if (response.status === 404) response = await fetch('/.netlify/functions/push-config', { cache: 'no-store' });
+    let response;
+    try { response = await fetch('/api/push-config', { cache: 'no-store' }); } catch (error) { response = null; }
+    if (!response || response.status === 404 || response.status >= 500) response = await fetch('/.netlify/functions/push-config', { cache: 'no-store' });
     if (!response.ok) throw new Error('Push ayarı alınamadı.');
     return response.json();
   }
