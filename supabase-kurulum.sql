@@ -41,8 +41,8 @@ before update on public.products
 for each row execute function public.set_updated_at();
 
 alter table public.products add column if not exists labor_type text not null default 'type1';
-update public.products set labor_type = case when labor_type = 'money' then 'type2' else 'type1' end where labor_type in ('gram', 'money');
 alter table public.products drop constraint if exists products_labor_type_check;
+update public.products set labor_type = case when labor_type = 'money' then 'type2' else 'type1' end where labor_type in ('gram', 'money');
 alter table public.products add constraint products_labor_type_check check (labor_type in ('type1', 'type2', 'type3'));
 
 alter table public.products enable row level security;
