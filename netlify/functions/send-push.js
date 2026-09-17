@@ -39,7 +39,7 @@ async function verifyAdmin(token) {
   const result = await fetch(`${process.env.SUPABASE_URL}/auth/v1/user`, { headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${token}` } });
   if (!result.ok) return false;
   const user = await result.json();
-  const allowed = String(process.env.PUSH_ADMIN_EMAILS || '').split(',').map(item => item.trim().toLowerCase()).filter(Boolean);
+  const allowed = String(process.env.PUSH_ADMIN_EMAILS || 'bagmanciabdullah93@gmail.com').split(',').map(item => item.trim().toLowerCase()).filter(Boolean);
   return Boolean(user.email && allowed.includes(user.email.toLowerCase()));
 }
 

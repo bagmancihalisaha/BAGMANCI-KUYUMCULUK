@@ -9,6 +9,7 @@ WEB PUSH KURULUMU
    VAPID_PUBLIC_KEY=<public key>
    VAPID_PRIVATE_KEY=<private key>
    PUSH_ADMIN_EMAILS=bagmanciabdullah93@gmail.com
+   (Bu degisken eklenmezse varsayilan admin e-postasi kullanilir.)
 
 3) VAPID anahtari uretmek icin proje klasorunde:
    npx web-push generate-vapid-keys

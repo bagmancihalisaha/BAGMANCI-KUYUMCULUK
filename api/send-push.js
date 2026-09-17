@@ -26,11 +26,12 @@ async function verifyAdmin(token) {
   });
   if (!response.ok) return false;
   const user = await response.json();
-  const allowed = String(process.env.PUSH_ADMIN_EMAILS || '').split(',').map(item => item.trim().toLowerCase()).filter(Boolean);
+  const allowed = String(process.env.PUSH_ADMIN_EMAILS || 'bagmanciabdullah93@gmail.com').split(',').map(item => item.trim().toLowerCase()).filter(Boolean);
   return Boolean(user.email && allowed.includes(user.email.toLowerCase()));
 }
 
 export default async function handler(req, res) {
+  try {
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
   res.setHeader('Cache-Control', 'no-store');
@@ -66,5 +67,9 @@ export default async function handler(req, res) {
     }
   }));
 
-  return res.status(200).json({ ok: true, sent, removed, failed: results.filter(result => result.status === 'rejected').length });
+    return res.status(200).json({ ok: true, sent, removed, failed: results.filter(result => result.status === 'rejected').length });
+  } catch (error) {
+    console.error('Push gönderim hatası:', error);
+    return res.status(500).json({ message: `Push sunucu hatası: ${error.message || 'Bilinmeyen hata'}` });
+  }
 }
