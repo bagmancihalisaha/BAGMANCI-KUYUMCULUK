@@ -40,9 +40,10 @@ create trigger products_set_updated_at
 before update on public.products
 for each row execute function public.set_updated_at();
 
-alter table public.products add column if not exists labor_type text not null default 'gram';
+alter table public.products add column if not exists labor_type text not null default 'type1';
+update public.products set labor_type = case when labor_type = 'money' then 'type2' else 'type1' end where labor_type in ('gram', 'money');
 alter table public.products drop constraint if exists products_labor_type_check;
-alter table public.products add constraint products_labor_type_check check (labor_type in ('gram', 'money'));
+alter table public.products add constraint products_labor_type_check check (labor_type in ('type1', 'type2', 'type3'));
 
 alter table public.products enable row level security;
 
@@ -78,10 +79,10 @@ insert into public.products (
   id, name, category, sku, badge, price_mode, gram, labor, labor_type, fixed_price, images,
   short_description, description, material, ayar, renk, tas, olcu, stok
 ) values
-('22-ayar-klasik-bilezik-01', '22 Ayar Klasik Bilezik', 'Bilezik', 'BGM-BLZ-001', '22 AYAR', 'liveGram', 18.5, 0, 'gram', null, array['products/bilezik-01.jpg'], 'Günlük kullanıma uygun 22 ayar bilezik modeli.', 'Fiyat canlı 22 ayar bilezik satış kuru üzerinden gram bazlı hesaplanır.', 'Altın', '22 Ayar', 'Sarı Altın', null, null, 'Mağazadan teyit'),
-('urfa-akitmasi-model-01', 'Urfa Akıtması Modeli', 'Urfa Akıtması', 'BGM-URF-001', 'YÖRESEL', 'liveGram', 32, 0, 'gram', null, array['products/urfa-akitmasi-01.jpg'], 'Şanlıurfa yöresel takı geleneğinden ilham alan akıtma modeli.', 'Gram bilgisi ve canlı kurla fiyatlandırma müşteriye şeffaf şekilde gösterilir.', 'Altın', '22 Ayar', 'Sarı Altın', null, null, 'Mağazadan teyit'),
-('tek-tas-yuzuk-01', 'Tek Taş Yüzük', 'Yüzük', 'BGM-YZK-001', 'ÖZEL', 'fixed', null, 0, 'gram', 26800, array['products/yuzuk-01.jpg'], 'Zarif taş görünümüyle özel günler için seçkin model.', 'Taş ölçü ve özel sipariş bilgileri mağaza iletişimiyle netleştirilebilir.', 'Altın', null, null, 'Tek taş', 'Mağazada ayarlanır', 'Mağazadan teyit'),
-('klasik-erkek-saati-01', 'Klasik Erkek Saati', 'Saat & Aksesuar', 'BGM-SAT-001', 'SAAT', 'fixed', null, 0, 'gram', 4250, array['products/saat-01.jpg'], 'Günlük şıklık için garantili klasik erkek saati.', 'Stok ve renk seçenekleri için mağaza ile iletişime geçilebilir.', 'Saat', null, null, null, null, 'Mağazadan teyit')
+('22-ayar-klasik-bilezik-01', '22 Ayar Klasik Bilezik', 'Bilezik', 'BGM-BLZ-001', '22 AYAR', 'liveGram', 18.5, 0, 'type1', null, array['products/bilezik-01.jpg'], 'Günlük kullanıma uygun 22 ayar bilezik modeli.', 'Fiyat canlı 22 ayar bilezik satış kuru üzerinden gram bazlı hesaplanır.', 'Altın', '22 Ayar', 'Sarı Altın', null, null, 'Mağazadan teyit'),
+('urfa-akitmasi-model-01', 'Urfa Akıtması Modeli', 'Urfa Akıtması', 'BGM-URF-001', 'YÖRESEL', 'liveGram', 32, 0, 'type1', null, array['products/urfa-akitmasi-01.jpg'], 'Şanlıurfa yöresel takı geleneğinden ilham alan akıtma modeli.', 'Gram bilgisi ve canlı kurla fiyatlandırma müşteriye şeffaf şekilde gösterilir.', 'Altın', '22 Ayar', 'Sarı Altın', null, null, 'Mağazadan teyit'),
+('tek-tas-yuzuk-01', 'Tek Taş Yüzük', 'Yüzük', 'BGM-YZK-001', 'ÖZEL', 'fixed', null, 0, 'type1', 26800, array['products/yuzuk-01.jpg'], 'Zarif taş görünümüyle özel günler için seçkin model.', 'Taş ölçü ve özel sipariş bilgileri mağaza iletişimiyle netleştirilebilir.', 'Altın', null, null, 'Tek taş', 'Mağazada ayarlanır', 'Mağazadan teyit'),
+('klasik-erkek-saati-01', 'Klasik Erkek Saati', 'Saat & Aksesuar', 'BGM-SAT-001', 'SAAT', 'fixed', null, 0, 'type1', 4250, array['products/saat-01.jpg'], 'Günlük şıklık için garantili klasik erkek saati.', 'Stok ve renk seçenekleri için mağaza ile iletişime geçilebilir.', 'Saat', null, null, null, null, 'Mağazadan teyit')
 on conflict (id) do nothing;
 
 insert into storage.buckets (id, name, public)

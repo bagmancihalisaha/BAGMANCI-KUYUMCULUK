@@ -1179,6 +1179,7 @@
 
         const { error } = await supabaseClient.from('products').upsert(payload, { onConflict: 'id' });
         if (error) {
+          if (/products_labor_type_check|labor_type/.test(error.message || '')) throw Error('Supabase labor_type alanı eski şemada. Supabase SQL Editor içinde supabase-catalog.sql dosyasını bir kez çalıştırın.');
           if (/sub_category|order_no/.test(error.message || '')) throw Error('Yeni alanlar için supabase-catalog.sql dosyasını Supabase SQL Editor üzerinden çalıştırın.');
           throw error;
         }
