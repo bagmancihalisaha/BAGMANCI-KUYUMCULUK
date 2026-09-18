@@ -1,0 +1,33 @@
+#borsa .market-table { table-layout: fixed; }
+#borsa .market-header { flex-wrap: wrap; gap: 12px; }
+#borsa .market-brand { min-width: 0; }
+#borsa .market-table > thead { display: none; }
+#borsa .market-table th:first-child, #borsa .market-table td:first-child { width: 42%; }
+#borsa .market-table .market-card-row > td { padding: 8px 0; border: 0; background: transparent !important; }
+.market-highlights, .market-currencies { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+#borsa .market-quote-card { min-width: 0; padding: 18px; border: 1px solid var(--gold-primary); border-radius: 8px; background: var(--bg-base); text-align: left; }
+#borsa .market-quote-card h3 { font-size: 18px; color: var(--text-pearl); min-height: 44px; margin: 0 0 12px; letter-spacing: 0; }
+.market-quote-prices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.market-side-label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 5px; font-weight: 500; }
+#borsa .market-price { font-variant-numeric: tabular-nums; white-space: nowrap; letter-spacing: 0; }
+#borsa .market-highlights .market-price { font-size: 24px; font-weight: 800; color: #e4bc45 !important; }
+body[data-theme="day"] #borsa .market-highlights .market-price { color: #8a610a !important; }
+.market-lira { opacity: .55; font-size: .7em; font-weight: 500; }
+#borsa .market-currencies .market-quote-card { padding: 12px; border-color: var(--card-border); }
+#borsa .market-currencies h3 { min-height: 0; margin-bottom: 8px; font-size: 14px; }
+#borsa .market-currencies .market-price { font-size: 16px; }
+#borsa .market-group-heading th { padding: 22px 8px 10px; border-bottom: 1px solid var(--card-border); }
+#borsa .market-group-heading th:first-child { color: var(--gold-light); font-size: 15px; font-weight: 700; letter-spacing: 0; text-transform: none; }
+@media (max-width: 620px) {
+  .market-highlights, .market-currencies { gap: 8px; }
+  #borsa .market-quote-card { padding: 12px 10px; }
+  #borsa .market-quote-card h3 { font-size: 15px; min-height: 36px; margin-bottom: 10px; }
+  .market-quote-prices { grid-template-columns: 1fr; gap: 8px; }
+  .market-quote-prices > div { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 3px; }
+  #borsa .market-highlights .market-price { font-size: 20px; }
+  #borsa .market-currencies .market-price { font-size: 14px; }
+  #borsa .market-currencies h3 { min-height: 0; }
+  #borsa .market-table td { padding: 10px 4px; }
+  #borsa .market-table .market-group-heading th { padding-left: 4px; padding-right: 4px; font-size: 10px; }
+  #borsa .market-group-heading th:first-child { font-size: 13px; }
+}

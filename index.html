@@ -1511,6 +1511,7 @@
     #catalogCoversView .cover-box img { transform: none !important; }
   </style>
   <link rel="stylesheet" href="app-views.css?v=1">
+  <link rel="stylesheet" href="market-layout.css?v=1">
 </head>
 <body>
 
@@ -2068,18 +2069,18 @@
     const PRODUCT_ORDER = [
       'HAS',
       '22_ayar_bilezik',
-      'hurda',
-      'yeni_ceyrek',
-      'yeni_yarim',
+      'USD',
+      'EUR',
       'yeni_ziynet',
-      'eski_ceyrek',
-      'eski_yarim',
+      'yeni_yarim',
+      'yeni_ceyrek',
       'eski_ziynet',
+      'eski_yarim',
+      'eski_ceyrek',
       'cnc',
       'sarnel',
       'GMS',
-      'USD',
-      'EUR'
+      'hurda'
     ];
     const PRODUCT_NAMES = {
       HAS: 'Has Altın (Gr)',
@@ -2087,10 +2088,10 @@
       hurda: '22 Ayar Hurda',
       yeni_ceyrek: 'Yeni Çeyrek',
       yeni_yarim: 'Yeni Yarım',
-      yeni_ziynet: 'Yeni Ziynet',
+      yeni_ziynet: 'Yeni Tam',
       eski_ceyrek: 'Eski Çeyrek',
       eski_yarim: 'Eski Yarım',
-      eski_ziynet: 'Eski Ziynet',
+      eski_ziynet: 'Eski Tam',
       cnc: 'CNC',
       sarnel: 'Şarnel',
       GMS: 'Gümüş',
@@ -2167,7 +2168,7 @@
     }
 
     function priceCell(value, type) {
-      return `<span class="market-price">${formatPrice(value, type)}</span>`;
+      return `<span class="market-price">${formatPrice(value, type)}<span class="market-lira" aria-hidden="true"> ₺</span></span>`;
     }
 
     function rowDirection(buyDirection, sellDirection) {
@@ -2253,7 +2254,7 @@
         return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex);
       });
 
-      const rowsHtml = ordered.map(item => {
+      const entries = new Map(ordered.map(item => {
         const key = normalizeProductKey(item);
         if (key === '22_ayar_bilezik') canliBilezikFiyati = Math.round(Number(item.sellPrice));
         const buyDirection = priceDirection(key, 'buy', item.buyPrice);
@@ -2261,16 +2262,26 @@
         const direction = rowDirection(buyDirection, sellDirection);
         const rowClass = direction === 'up' ? 'market-row-up' : direction === 'down' ? 'market-row-down' : '';
 
-        return `
-          <tr class="${rowClass}">
-            <td><span class="market-product-name">${displayProductName(item)}</span></td>
-            <td>${priceCell(item.buyPrice, item.type)}</td>
-            <td>${priceCell(item.sellPrice, item.type)}</td>
-          </tr>
-        `;
+        return [key, {item, rowClass}];
+      }));
+      const price = (entry, side) => priceCell(entry.item[side + 'Price'], normalizeProductKey(entry.item));
+      const cards = (keys, kind) => `<tr class="market-card-row"><td colspan="3"><div class="market-${kind}">${keys.map(key => {
+        const entry = entries.get(key);
+        const name = PRODUCT_NAMES[key];
+        return `<article class="market-quote-card ${entry?.rowClass || ''}" data-market-key="${key}"><h3>${name}</h3><div class="market-quote-prices"><div><span class="market-side-label">Alış</span>${entry ? price(entry, 'buy') : '<span class="market-price">—</span>'}</div><div><span class="market-side-label">Satış</span>${entry ? price(entry, 'sell') : '<span class="market-price">—</span>'}</div></div></article>`;
+      }).join('')}</div></td></tr>`;
+      const heading = title => `<tr class="market-group-heading"><th scope="col">${title}</th><th scope="col">Alış</th><th scope="col">Satış</th></tr>`;
+      const rows = keys => keys.map(key => {
+        const entry = entries.get(key);
+        if (!entry) return '';
+        return `<tr class="${entry.rowClass}" data-market-key="${escapeText(key)}"><td><span class="market-product-name">${escapeText(displayProductName(entry.item))}</span></td><td>${price(entry, 'buy')}</td><td>${price(entry, 'sell')}</td></tr>`;
       }).join('');
-
-      tableBody.innerHTML = rowsHtml;
+      const otherKeys = [...entries.keys()].filter(key => !PRODUCT_ORDER.includes(key));
+      tableBody.innerHTML = cards(['HAS','22_ayar_bilezik'], 'highlights')
+        + cards(['USD','EUR'], 'currencies')
+        + heading('Yeni Sarrafiye') + rows(['yeni_ziynet','yeni_yarim','yeni_ceyrek'])
+        + heading('Eski Sarrafiye') + rows(['eski_ziynet','eski_yarim','eski_ceyrek'])
+        + heading('Diğer') + rows(['cnc','sarnel','GMS',...otherKeys,'hurda']);
       tableBody.dataset.hasLiveData = '1';
     }
 
