@@ -1527,6 +1527,57 @@
   </style>
   <link rel="stylesheet" href="app-views.css?v=1">
   <link rel="stylesheet" href="market-layout.css?v=1">
+  <style>
+    .calculator-button { flex: 0 0 40px; }
+    .calculator-page { min-height: calc(100dvh - 150px); padding: 24px 16px 110px; background: var(--bg-base); color: var(--text-pearl); }
+    .calculator-shell { width: min(780px, 100%); margin: 0 auto; }
+    .calculator-heading { display:flex; align-items:end; justify-content:space-between; gap:16px; margin-bottom:18px; }
+    .calculator-kicker { display:block; color:var(--emerald-accent); font-size:11px; letter-spacing:2px; text-transform:uppercase; margin-bottom:5px; }
+    .calculator-heading h1 { margin:0; color:var(--gold-light); font:700 34px/1.05 'Cormorant Garamond',serif; }
+    .calculator-segments { display:grid; grid-template-columns:1fr 1fr; gap:4px; padding:4px; margin-bottom:18px; border:1px solid var(--card-border); border-radius:12px; background:rgba(255,255,255,.035); }
+    .calculator-segment { border:0; border-radius:9px; padding:11px 12px; background:transparent; color:var(--text-muted); font:600 12px/1.2 inherit; cursor:pointer; }
+    .calculator-segment.active { background:var(--gold-primary); color:#10251d; box-shadow:0 4px 14px rgba(212,175,55,.22); }
+    .calculator-mode { display:none; }
+    .calculator-mode.active { display:block; }
+    .standard-calculator { width:min(390px,100%); margin:0 auto; padding:18px; border:1px solid rgba(212,175,55,.25); border-radius:18px; background:rgba(4,15,12,.88); box-shadow:0 18px 44px rgba(0,0,0,.5), inset 0 0 24px rgba(212,175,55,.035); }
+    .standard-display { min-height:88px; display:flex; align-items:end; justify-content:flex-end; padding:12px 14px 8px; margin-bottom:14px; overflow:hidden; border:1px solid rgba(212,175,55,.18); border-radius:12px; background:#020605; color:#f7e8c3; font-size:42px; font-weight:500; font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .standard-keys { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+    .standard-key { min-height:58px; border:0; border-radius:50%; background:#2a302e; color:#f7f6f2; font-size:21px; font-weight:600; cursor:pointer; transition:transform .15s, filter .15s; }
+    .standard-key:hover { filter:brightness(1.18); transform:translateY(-1px); }
+    .standard-key:active { transform:scale(.95); }
+    .standard-key.utility { background:#69716c; color:#07130f; }
+    .standard-key.operator { background:#d97725; color:#fff8ec; }
+    .standard-key.zero { grid-column:span 2; border-radius:32px; text-align:left; padding-left:23px; }
+    .gold-calculator { padding:20px; border:1px solid rgba(212,175,55,.25); border-radius:16px; background:rgba(255,255,255,.025); backdrop-filter:blur(8px); box-shadow:0 16px 40px rgba(0,0,0,.42), inset 0 0 20px rgba(212,175,55,.035); }
+    .gold-calculator-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .gold-field { display:flex; flex-direction:column; gap:7px; }
+    .gold-field.full { grid-column:1 / -1; }
+    .gold-field label, .gold-field legend { color:var(--text-muted); font-size:11px; font-weight:700; letter-spacing:.6px; }
+    .gold-field select, .gold-field input { width:100%; min-height:44px; border:1px solid var(--card-border); border-radius:9px; padding:0 12px; background:rgba(2,6,5,.72); color:var(--text-pearl); font:500 14px inherit; outline:none; }
+    .gold-field select:focus, .gold-field input:focus { border-color:var(--gold-primary); box-shadow:0 0 0 3px rgba(212,175,55,.12); }
+    .gold-operation { display:grid; grid-template-columns:1fr 1fr; gap:5px; padding:4px; border:1px solid var(--card-border); border-radius:10px; background:rgba(255,255,255,.025); }
+    .gold-operation button { min-height:38px; border:0; border-radius:7px; background:transparent; color:var(--text-muted); font:600 11px inherit; cursor:pointer; }
+    .gold-operation button.active { background:rgba(212,175,55,.18); color:var(--gold-light); }
+    .gold-summary { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:18px; }
+    .gold-summary-card { padding:15px; border:1px solid rgba(212,175,55,.18); border-radius:11px; background:rgba(2,6,5,.4); }
+    .gold-summary-card span { display:block; color:var(--text-muted); font-size:11px; margin-bottom:7px; }
+    .gold-summary-card strong { display:block; color:#f3e5ab; font-size:24px; font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .gold-summary-card.total { grid-column:1 / -1; background:linear-gradient(135deg,rgba(212,175,55,.14),rgba(2,6,5,.55)); }
+    .gold-summary-card.total strong { color:var(--gold-primary); font-size:32px; }
+    body[data-theme="day"] .standard-calculator { background:linear-gradient(180deg,rgba(255,251,238,.97),rgba(248,236,204,.94)); }
+    body[data-theme="day"] .standard-display, body[data-theme="day"] .gold-field select, body[data-theme="day"] .gold-field input, body[data-theme="day"] .gold-summary-card { background:rgba(255,253,247,.72); color:var(--text-pearl); }
+    body[data-theme="day"] .standard-key { background:#e5d8b9; color:#083f31; }
+    @media (max-width:620px) {
+      .calculator-page { padding:18px 12px 104px; }
+      .calculator-heading h1 { font-size:29px; }
+      .standard-calculator { padding:14px; }
+      .standard-key { min-height:54px; }
+      .gold-calculator { padding:14px; }
+      .gold-calculator-grid, .gold-summary { grid-template-columns:1fr; }
+      .gold-field.full, .gold-summary-card.total { grid-column:auto; }
+      .gold-summary-card.total strong { font-size:28px; }
+    }
+  </style>
 </head>
 <body>
 
@@ -1539,6 +1590,7 @@
         <button type="button" data-theme-choice="day" onclick="setThemeMode('day')">Gündüz Tema</button>
         <button type="button" data-theme-choice="system" onclick="setThemeMode('system')">Sistem Ayarı</button>
       </div>
+      <button class="header-action-btn calculator-button" id="btn-calculator" type="button" onclick="openCalculatorPage()" title="Hesap Makinesi" aria-label="Hesap makinesini aç"><i class="fa-solid fa-calculator"></i></button>
     </div>
     <a href="#" class="brand-logo">BAĞMANCI</a>
     <span class="brand-sub">Kuyumculuk & Saat</span>
@@ -2034,6 +2086,62 @@
     </div>
   </div>
 
+  <!-- HESAP MAKİNESİ SAYFASI -->
+  <section class="calculator-page" id="calculator-view" aria-label="Hesap Makinesi">
+    <div class="calculator-shell">
+      <div class="calculator-heading">
+        <div><span class="calculator-kicker">Bağmancı Kuyumculuk</span><h1>Hesap Makinesi</h1></div>
+        <i class="fa-solid fa-calculator" aria-hidden="true" style="color:var(--gold-primary);font-size:25px;"></i>
+      </div>
+      <div class="calculator-segments" role="tablist" aria-label="Hesap makinesi modu">
+        <button class="calculator-segment active" id="calculatorTabStandard" type="button" role="tab" aria-selected="true" onclick="setCalculatorMode('standard')">Standart Makine</button>
+        <button class="calculator-segment" id="calculatorTabGold" type="button" role="tab" aria-selected="false" onclick="setCalculatorMode('gold')">Altın &amp; Borsa Hesaplayıcı</button>
+      </div>
+
+      <section class="calculator-mode active" id="standardCalculatorMode" role="tabpanel">
+        <div class="standard-calculator" aria-label="Standart hesap makinesi">
+          <div class="standard-display" id="standardCalculatorDisplay" aria-live="polite">0</div>
+          <div class="standard-keys">
+            <button class="standard-key utility" type="button" onclick="calculatorClear()">AC</button>
+            <button class="standard-key utility" type="button" onclick="calculatorToggleSign()">±</button>
+            <button class="standard-key utility" type="button" onclick="calculatorPercent()">%</button>
+            <button class="standard-key operator" type="button" onclick="calculatorOperator('÷')">÷</button>
+            <button class="standard-key" type="button" onclick="calculatorDigit('7')">7</button>
+            <button class="standard-key" type="button" onclick="calculatorDigit('8')">8</button>
+            <button class="standard-key" type="button" onclick="calculatorDigit('9')">9</button>
+            <button class="standard-key operator" type="button" onclick="calculatorOperator('×')">×</button>
+            <button class="standard-key" type="button" onclick="calculatorDigit('4')">4</button>
+            <button class="standard-key" type="button" onclick="calculatorDigit('5')">5</button>
+            <button class="standard-key" type="button" onclick="calculatorDigit('6')">6</button>
+            <button class="standard-key operator" type="button" onclick="calculatorOperator('-')">−</button>
+            <button class="standard-key" type="button" onclick="calculatorDigit('1')">1</button>
+            <button class="standard-key" type="button" onclick="calculatorDigit('2')">2</button>
+            <button class="standard-key" type="button" onclick="calculatorDigit('3')">3</button>
+            <button class="standard-key operator" type="button" onclick="calculatorOperator('+')">+</button>
+            <button class="standard-key zero" type="button" onclick="calculatorDigit('0')">0</button>
+            <button class="standard-key" type="button" onclick="calculatorDecimal()">.</button>
+            <button class="standard-key operator" type="button" onclick="calculatorEquals()">=</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="calculator-mode" id="goldCalculatorMode" role="tabpanel" hidden>
+        <div class="gold-calculator">
+          <div class="gold-calculator-grid">
+            <div class="gold-field full"><label for="goldCalculatorProduct">Piyasa Kalemi</label><select id="goldCalculatorProduct" onchange="updateGoldCalculator()"></select></div>
+            <div class="gold-field full"><label>İşlem Tipi</label><div class="gold-operation" role="group" aria-label="İşlem tipi"><button id="goldSellOperation" class="active" type="button" onclick="setGoldOperation('sell')">Müşteri Alıyor<br><small>(Satış Fiyatı)</small></button><button id="goldBuyOperation" type="button" onclick="setGoldOperation('buy')">Müşteri Satıyor<br><small>(Bozdurma / Alış)</small></button></div></div>
+            <div class="gold-field full"><label id="goldAmountLabel" for="goldCalculatorAmount">Gram Giriniz</label><input id="goldCalculatorAmount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00" oninput="updateGoldCalculator()"></div>
+          </div>
+          <div class="gold-summary" aria-live="polite">
+            <div class="gold-summary-card"><span>Anlık Birim Kur</span><strong id="goldUnitPrice">-- ₺</strong></div>
+            <div class="gold-summary-card"><span>Miktar</span><strong id="goldAmountSummary">0</strong></div>
+            <div class="gold-summary-card total"><span>Toplam Tutar</span><strong id="goldTotalPrice">0,00 ₺</strong></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </section>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
   <script>
@@ -2042,6 +2150,12 @@
     let currentVisitors = 14;
     let marketRequestRunning = false;
     let previousMarketPrices = {};
+    let latestMarketData = [];
+    let goldCalculatorOperation = 'sell';
+    let standardCalculatorValue = '0';
+    let standardCalculatorStored = null;
+    let standardCalculatorOperator = null;
+    let standardCalculatorWaiting = false;
     let publicAnnouncements = [];
     let notificationsLoaded = false;
     let browserAnnouncementIds = new Set();
@@ -2266,6 +2380,8 @@
 
     function renderMarketRows(data) {
       const tableBody = document.getElementById('bagmanci-market-body');
+      latestMarketData = Array.isArray(data) ? data : [];
+      renderGoldCalculatorOptions();
       const ordered = [...data].sort((a, b) => {
         const aIndex = PRODUCT_ORDER.indexOf(normalizeProductKey(a));
         const bIndex = PRODUCT_ORDER.indexOf(normalizeProductKey(b));
@@ -2302,6 +2418,92 @@
         + heading('Diğer') + rows(['cnc','sarnel','GMS',...otherKeys,'hurda']);
       tableBody.dataset.hasLiveData = '1';
     }
+
+    function setCalculatorMode(mode) {
+      const standard = mode === 'standard';
+      document.getElementById('standardCalculatorMode').classList.toggle('active', standard);
+      document.getElementById('standardCalculatorMode').hidden = !standard;
+      document.getElementById('goldCalculatorMode').classList.toggle('active', !standard);
+      document.getElementById('goldCalculatorMode').hidden = standard;
+      document.getElementById('calculatorTabStandard').classList.toggle('active', standard);
+      document.getElementById('calculatorTabStandard').setAttribute('aria-selected', String(standard));
+      document.getElementById('calculatorTabGold').classList.toggle('active', !standard);
+      document.getElementById('calculatorTabGold').setAttribute('aria-selected', String(!standard));
+      if (!standard) { renderGoldCalculatorOptions(); updateGoldCalculator(); }
+    }
+
+    function updateStandardCalculatorDisplay() {
+      const display = document.getElementById('standardCalculatorDisplay');
+      if (display) display.textContent = standardCalculatorValue.length > 12 ? Number(standardCalculatorValue).toLocaleString('en-US', { maximumFractionDigits: 8 }) : standardCalculatorValue;
+    }
+    function calculatorClear() { standardCalculatorValue = '0'; standardCalculatorStored = null; standardCalculatorOperator = null; standardCalculatorWaiting = false; updateStandardCalculatorDisplay(); }
+    function calculatorDigit(digit) {
+      if (standardCalculatorWaiting || standardCalculatorValue === 'Error') { standardCalculatorValue = digit; standardCalculatorWaiting = false; }
+      else standardCalculatorValue = standardCalculatorValue === '0' ? digit : standardCalculatorValue + digit;
+      updateStandardCalculatorDisplay();
+    }
+    function calculatorDecimal() {
+      if (standardCalculatorWaiting || standardCalculatorValue === 'Error') { standardCalculatorValue = '0.'; standardCalculatorWaiting = false; }
+      else if (!standardCalculatorValue.includes('.')) standardCalculatorValue += '.';
+      updateStandardCalculatorDisplay();
+    }
+    function calculatorToggleSign() { if (standardCalculatorValue !== '0' && standardCalculatorValue !== 'Error') standardCalculatorValue = String(Number(standardCalculatorValue) * -1); updateStandardCalculatorDisplay(); }
+    function calculatorPercent() { if (standardCalculatorValue !== 'Error') standardCalculatorValue = String(Number(standardCalculatorValue) / 100); updateStandardCalculatorDisplay(); }
+    function calculateStandardResult() {
+      const current = Number(standardCalculatorValue);
+      if (!Number.isFinite(current) || standardCalculatorStored === null || !standardCalculatorOperator) return;
+      const operations = {'+':(a,b)=>a+b, '-':(a,b)=>a-b, '×':(a,b)=>a*b, '÷':(a,b)=>b === 0 ? NaN : a/b};
+      const result = operations[standardCalculatorOperator]?.(standardCalculatorStored, current);
+      standardCalculatorValue = Number.isFinite(result) ? String(Number(result.toFixed(8))) : 'Error';
+      standardCalculatorStored = null; standardCalculatorOperator = null; standardCalculatorWaiting = true;
+      updateStandardCalculatorDisplay();
+    }
+    function calculatorOperator(operator) {
+      if (standardCalculatorValue === 'Error') calculatorClear();
+      if (standardCalculatorOperator && !standardCalculatorWaiting) calculateStandardResult();
+      standardCalculatorStored = Number(standardCalculatorValue); standardCalculatorOperator = operator; standardCalculatorWaiting = true;
+    }
+    function calculatorEquals() { if (standardCalculatorOperator) calculateStandardResult(); }
+
+    const GOLD_CALCULATOR_ITEMS = [
+      ['HAS', 'Has Altın (Gr)', 'gram'], ['22_ayar_bilezik', '22 Ayar Bilezik', 'gram'], ['hurda', '22 Ayar Hurda', 'gram'],
+      ['yeni_ziynet', 'Yeni Tam', 'adet'], ['yeni_yarim', 'Yeni Yarım', 'adet'], ['yeni_ceyrek', 'Yeni Çeyrek', 'adet'],
+      ['eski_ziynet', 'Eski Tam', 'adet'], ['eski_yarim', 'Eski Yarım', 'adet'], ['eski_ceyrek', 'Eski Çeyrek', 'adet'],
+      ['USD', 'Dolar', 'adet'], ['EUR', 'Euro', 'adet'], ['GMS', 'Gümüş', 'gram']
+    ];
+    function renderGoldCalculatorOptions() {
+      const select = document.getElementById('goldCalculatorProduct');
+      if (!select) return;
+      const current = select.value || 'HAS';
+      select.innerHTML = GOLD_CALCULATOR_ITEMS.map(([key, label]) => `<option value="${key}">${label}</option>`).join('');
+      select.value = GOLD_CALCULATOR_ITEMS.some(item => item[0] === current) ? current : 'HAS';
+      updateGoldCalculator();
+    }
+    function setGoldOperation(operation) {
+      goldCalculatorOperation = operation;
+      document.getElementById('goldSellOperation').classList.toggle('active', operation === 'sell');
+      document.getElementById('goldBuyOperation').classList.toggle('active', operation === 'buy');
+      updateGoldCalculator();
+    }
+    function updateGoldCalculator() {
+      const select = document.getElementById('goldCalculatorProduct');
+      const amountInput = document.getElementById('goldCalculatorAmount');
+      if (!select || !amountInput) return;
+      const definition = GOLD_CALCULATOR_ITEMS.find(item => item[0] === select.value) || GOLD_CALCULATOR_ITEMS[0];
+      const item = latestMarketData.find(entry => normalizeProductKey(entry) === definition[0]);
+      const unitPrice = Number(item?.[goldCalculatorOperation === 'sell' ? 'sellPrice' : 'buyPrice']) || 0;
+      const amount = Math.max(0, Number(amountInput.value) || 0);
+      document.getElementById('goldAmountLabel').textContent = definition[2] === 'gram' ? 'Gram Giriniz' : 'Adet Giriniz';
+      document.getElementById('goldUnitPrice').textContent = unitPrice ? `${formatPrice(unitPrice, definition[0])} ₺` : '-- ₺';
+      document.getElementById('goldAmountSummary').textContent = amount ? `${amount.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} ${definition[2] === 'gram' ? 'gr' : 'adet'}` : '0';
+      document.getElementById('goldTotalPrice').textContent = unitPrice ? `${(unitPrice * amount).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₺` : '0,00 ₺';
+    }
+
+    function openCalculatorPage() {
+      if (window.SiteViews) window.SiteViews.navigate({ view: 'calculator' });
+      else { document.getElementById('calculator-view').style.display = 'block'; renderGoldCalculatorOptions(); }
+    }
+    function closeCalculatorPage() { if (window.SiteViews) window.SiteViews.back(); }
 
     async function fetchVisitorCount() {
       const urls = [liveApiUrl('?type=count')];

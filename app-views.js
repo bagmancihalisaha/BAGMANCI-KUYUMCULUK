@@ -1,5 +1,5 @@
 (() => {
-  const pageIds = {search:'searchModal', cart:'sepetModal', account:'uyeModal', messages:'soruModal', notifications:'duyuruModal'};
+  const pageIds = {search:'searchModal', cart:'sepetModal', account:'uyeModal', messages:'soruModal', notifications:'duyuruModal', calculator:'calculator-view'};
   const idViews = Object.fromEntries(Object.entries(pageIds).map(([view,id]) => [id,view]));
   const home = document.createElement('section'); home.id = 'home-view';
   const banner = document.querySelector('.banner-container'); banner.before(home);
@@ -25,14 +25,14 @@
   document.body.classList.add('app-views');
   for (const id of Object.values(pageIds)) {
     const node = document.getElementById(id);
-    node.className = 'app-page'; node.removeAttribute('aria-modal'); node.setAttribute('role','region');
+    node.className = id === 'calculator-view' ? 'app-page calculator-page' : 'app-page'; node.removeAttribute('aria-modal'); node.setAttribute('role','region');
   }
   let applying = false, current, sequence = 0;
   const originalModal = modalGoster, originalCategory = katalogAc;
   const originalAccount = openAccountSection, originalCartStep = showCartStep;
   const show = (node, visible) => { if (node) { node.dataset.viewHidden = String(!visible); node.hidden = !visible; } };
   function hashFor(state) {
-    const hashes = {home:state.anchor === 'borsa' ? 'borsa' : 'home',catalog:'katalog',cart:'sepet',account:'hesabim',search:'search',messages:'account-messages',notifications:'duyurular'};
+    const hashes = {home:state.anchor === 'borsa' ? 'borsa' : 'home',catalog:'katalog',cart:'sepet',account:'hesabim',search:'search',messages:'account-messages',notifications:'duyurular',calculator:'hesap-makinesi'};
     const params = new URLSearchParams();
     if (state.category) params.set('category',state.category);
     if (state.model) params.set('model',state.model);
@@ -44,7 +44,7 @@
   function parseHash() {
     const [name, query] = location.hash.slice(1).split('?');
     const params = Object.fromEntries(new URLSearchParams(query));
-    const views = {home:'home',anasayfa:'home',katalog:'catalog',borsa:'home',sepet:'cart',hesabim:'account',search:'search',duyurular:'notifications','account-messages':'messages'};
+    const views = {home:'home',anasayfa:'home',katalog:'catalog',borsa:'home',sepet:'cart',hesabim:'account',search:'search',duyurular:'notifications','account-messages':'messages','hesap-makinesi':'calculator'};
     if (name === 'borsa') return {view:'home',anchor:'borsa'};
     if (name?.startsWith('account-') && name !== 'account-messages') return {view:'account',section:name.slice(8),...params};
     return {view:views[name] || 'home',...params};
