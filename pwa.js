@@ -5,7 +5,8 @@
   style.textContent = `
     #bk-install-dialog{width:min(390px,calc(100% - 32px));max-height:85dvh;overflow:auto;padding:24px;border:1px solid #c8a345;border-radius:8px;background:#fffaf0;color:#104b3a;font:16px/1.6 Arial,sans-serif}
     #bk-install-dialog::backdrop{background:#0009}#bk-install-dialog img{display:block;width:92px;height:92px;border-radius:8px;margin:0 auto 12px}#bk-install-dialog h2{font-size:22px;text-align:center;color:#104b3a}#bk-install-dialog ol{padding-left:24px}#bk-install-dialog button{width:100%;padding:12px;background:#d4af37;color:#06251d;border:0;border-radius:8px;font-weight:700;cursor:pointer}
-    #bk-opening{position:fixed;inset:0;z-index:10000;display:grid;place-content:center;background:#06251d;pointer-events:none;animation:bk-opening-out .5s ease 2s forwards}#bk-opening img{width:min(65vw,300px);height:auto;border-radius:8px}
+    #bk-opening{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;background:#020b07;pointer-events:none;overflow:hidden}#bk-opening img{display:block;width:100%;height:100%;min-height:0;object-fit:contain;border-radius:0}#bk-opening.bk-ready{animation:bk-opening-out .5s ease 2s forwards}
+    @media(max-width:600px){#bk-opening img{object-fit:cover}}
     @keyframes bk-opening-out{to{opacity:0;visibility:hidden}}@media(prefers-reduced-motion:reduce){#bk-opening{animation-duration:0s}}
   `;
   document.head.append(style);
@@ -16,9 +17,16 @@
     try { seen = sessionStorage.getItem('bk-opening') === '1'; if (!debugMode) sessionStorage.setItem('bk-opening','1'); } catch {}
     if (!seen) {
       const opening = document.createElement('div'); opening.id = 'bk-opening';
-      const logo = document.createElement('img'); logo.src = 'bk-opening.png'; logo.alt = 'BK Bağmancı Kuyumculuk';
+      const logo = document.createElement('img'); logo.alt = 'BK Bağmancı Kuyumculuk';
+      const failSafe = setTimeout(() => opening.remove(), 7000);
+      logo.onload = () => {
+        clearTimeout(failSafe);
+        opening.classList.add('bk-ready');
+        setTimeout(() => opening.remove(), 2500);
+      };
+      logo.onerror = () => { clearTimeout(failSafe); opening.remove(); };
+      logo.src = 'bk-opening-portrait.jpg';
       opening.append(logo); document.body.append(opening);
-      setTimeout(() => opening.remove(), 2500);
     }
   }
   let serviceWorkerRegistration;
