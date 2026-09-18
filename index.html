@@ -1110,7 +1110,7 @@
     .header-count-badge { position: absolute; top: -5px; right: -5px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px; display: none; place-items: center; background: var(--gold-primary); color: #020605; font-size: 10px; font-weight: 900; line-height: 19px; border: 1px solid rgba(247, 232, 195, 0.75); box-shadow: 0 6px 16px rgba(212, 175, 55, 0.28); }
     .header-action-btn.has-unread .header-count-badge { display: grid; }
     .header-action-btn.bell-alert { animation: bellAttention 1.8s ease-in-out 2; transform-origin: 50% 10%; }
-    @keyframes bellAttention { 0%,100% { transform: translateY(-50%) rotate(0deg) scale(1); } 14% { transform: translateY(-50%) rotate(-10deg) scale(1.08); } 28% { transform: translateY(-50%) rotate(9deg) scale(1.08); } 42% { transform: translateY(-50%) rotate(-6deg) scale(1.04); } 58% { transform: translateY(-50%) rotate(4deg) scale(1.02); } }
+    @keyframes bellAttention { 0%,100% { transform: rotate(0deg) scale(1); } 25% { transform: rotate(-6deg) scale(1.08); } 50% { transform: rotate(6deg) scale(1.08); } 75% { transform: rotate(-3deg) scale(1.04); } }
     .message-page-overlay, .notification-page-overlay { align-items: stretch; justify-content: center; padding: 0; overflow-y: auto; background: rgba(0,0,0,0.96); }
     .message-page, .notification-page { width: min(980px, 100%); min-height: 100vh; max-height: none; overflow: visible; border-radius: 0; border-top: 0; border-bottom: 0; box-shadow: none; padding: 0; background: #f7f5f0; color: #1f2422; }
     .page-topbar { position: sticky; top: 0; z-index: 3; min-height: 72px; display: grid; grid-template-columns: 54px 1fr 54px; align-items: center; background: #fff; border-bottom: 1px solid #e8e4dc; }
@@ -1510,6 +1510,7 @@
     #catalogCoversView .cover-box { height: auto !important; aspect-ratio: 4 / 3; }
     #catalogCoversView .cover-box img { transform: none !important; }
   </style>
+  <link rel="stylesheet" href="app-views.css?v=1">
 </head>
 <body>
 
@@ -1693,7 +1694,7 @@
         </div>
         <div class="search-intro" id="searchIntroBlocks">
           <div class="search-callout"><i class="fa-brands fa-tiktok"></i><span>TikTok'ta gördüğün takıyı mı arıyorsun? Ekran görüntüsü al, görselle ara.</span></div>
-          <button class="search-assistant" type="button" onclick="modalKapat('searchModal'); openAccountModal(); openAccountSection('assistant');"><span><strong>Sana Özel Öneriler</strong><br>Bağmancı Asistan'a Sor</span><i class="fa-solid fa-chevron-right"></i></button>
+          <button class="search-assistant" type="button" onclick="openAccountModal(); openAccountSection('assistant');"><span><strong>Sana Özel Öneriler</strong><br>Bağmancı Asistan'a Sor</span><i class="fa-solid fa-chevron-right"></i></button>
         </div>
         <div class="search-history-section" id="searchHistorySection">
           <div class="search-section-title"><span>Geçmiş Aramalarım</span></div>
@@ -2939,6 +2940,10 @@
     function urunDetayAc(id, from = 'catalog') {
       const rawId = decodeURIComponent(id);
       trackViewedProduct(catalogProducts.find(item => item.id === rawId));
+      if (window.SiteViews) {
+        history.replaceState({...history.state, bkView:{...SiteViews.current,scroll:window.scrollY}},'',location.href);
+        sessionStorage.setItem('bk-product-return', location.hash);
+      }
       window.location.href = `product.html?id=${id}&from=${encodeURIComponent(from)}`;
     }
 
@@ -3786,7 +3791,6 @@
     }
     async function openQuestionModal(options = {}) {
       contextualReturnTarget = options.returnTo || null;
-      if (contextualReturnTarget === 'account') modalKapat('uyeModal');
       modalGoster('soruModal');
       showMessageTab(options.tab || 'seller');
       await loadPublicAnnouncements();
@@ -3794,7 +3798,6 @@
     }
     async function openAnnouncementModal(options = {}) {
       contextualReturnTarget = options.returnTo || null;
-      if (contextualReturnTarget === 'account') modalKapat('uyeModal');
       modalGoster('duyuruModal');
       showNotificationTab(options.tab || 'all');
       await loadPublicAnnouncements();
@@ -3847,12 +3850,6 @@
       if (!openPage) document.body.classList.remove('modal-page-open');
     }
 
-    if (window.location.hash === '#sepet') setTimeout(() => modalGoster('sepetModal'), 150);
-    if (window.location.hash === '#account-history') setTimeout(() => { openAccountModal(); openAccountSection('history'); }, 180);
-    if (window.location.hash === '#duyurular') setTimeout(() => openAnnouncementModal(), 180);
-    if (window.location.hash === '#account-messages') setTimeout(() => openQuestionModal({ returnTo: 'account', tab: 'seller' }), 180);
-    if (window.location.hash === '#account-assistant') setTimeout(() => { openAccountModal(); openAccountSection('assistant'); }, 180);
-    if (window.location.hash.startsWith('#search')) { const hashQuery = new URLSearchParams(window.location.hash.split('?')[1] || '').get('q') || ''; setTimeout(() => openSearchPage(false, hashQuery), 180); }
     populateCityDatalist();
     applyThemeMode();
     renderCustomerProfile();
@@ -3872,6 +3869,7 @@
     setInterval(fetchVisitorCount, 10000);
     setInterval(() => loadPublicAnnouncements().catch(() => {}), 30000);
   </script>
+  <script src="app-views.js?v=1"></script>
   <script src="site-media.js?v=20260911-2"></script>
   <script src="catalog-categories.js"></script>
 </body>

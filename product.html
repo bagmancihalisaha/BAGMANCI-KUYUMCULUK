@@ -1007,6 +1007,17 @@
       const query = params.get('q') || '';
       const back = document.getElementById('productBackLink');
       if (!back) return;
+      const returnHash = sessionStorage.getItem('bk-product-return');
+      if (returnHash && /^#(home|katalog|search|hesabim|account-)/.test(returnHash)) {
+        back.href = 'index.html' + returnHash;
+        back.innerHTML = '<i class="fa-solid fa-arrow-left"></i> Geri Dön';
+        back.onclick = event => {
+          if (document.referrer && new URL(document.referrer).origin === location.origin && /\/index\.html|\/$/.test(new URL(document.referrer).pathname)) {
+            event.preventDefault(); history.back();
+          }
+        };
+        return;
+      }
       if (from === 'account-history') {
         back.href = 'index.html#account-history';
         back.innerHTML = '<i class="fa-solid fa-arrow-left"></i> Hesabıma Dön';
