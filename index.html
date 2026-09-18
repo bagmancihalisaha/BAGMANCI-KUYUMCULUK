@@ -2167,8 +2167,9 @@
       return '';
     }
 
-    function priceCell(value, type) {
-      return `<span class="market-price">${formatPrice(value, type)}<span class="market-lira" aria-hidden="true"> ₺</span></span>`;
+    function priceCell(value, type, direction = '') {
+      const changeClass = direction === 'up' ? ' price-up' : direction === 'down' ? ' price-down' : '';
+      return `<span class="market-price${changeClass}">${formatPrice(value, type)}<span class="market-lira" aria-hidden="true"> ₺</span></span>`;
     }
 
     function rowDirection(buyDirection, sellDirection) {
@@ -2262,9 +2263,9 @@
         const direction = rowDirection(buyDirection, sellDirection);
         const rowClass = direction === 'up' ? 'market-row-up' : direction === 'down' ? 'market-row-down' : '';
 
-        return [key, {item, rowClass}];
+        return [key, {item, rowClass, buyDirection, sellDirection}];
       }));
-      const price = (entry, side) => priceCell(entry.item[side + 'Price'], normalizeProductKey(entry.item));
+      const price = (entry, side) => priceCell(entry.item[side + 'Price'], normalizeProductKey(entry.item), entry[side + 'Direction']);
       const cards = (keys, kind) => `<tr class="market-card-row"><td colspan="3"><div class="market-${kind}">${keys.map(key => {
         const entry = entries.get(key);
         const name = PRODUCT_NAMES[key];
@@ -2278,7 +2279,7 @@
       }).join('');
       const otherKeys = [...entries.keys()].filter(key => !PRODUCT_ORDER.includes(key));
       tableBody.innerHTML = cards(['HAS','22_ayar_bilezik'], 'highlights')
-        + cards(['USD','EUR'], 'currencies')
+        + heading('Döviz') + rows(['USD','EUR'])
         + heading('Yeni Sarrafiye') + rows(['yeni_ziynet','yeni_yarim','yeni_ceyrek'])
         + heading('Eski Sarrafiye') + rows(['eski_ziynet','eski_yarim','eski_ceyrek'])
         + heading('Diğer') + rows(['cnc','sarnel','GMS',...otherKeys,'hurda']);
