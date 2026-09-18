@@ -54,6 +54,7 @@
     }
     body[data-theme="day"] header,
     body[data-theme="day"] .app-bar { background: rgba(255, 249, 232, 0.96); box-shadow: 0 10px 34px rgba(122, 86, 18, 0.16); }
+    body[data-theme="day"] .contact-panel,
     body[data-theme="day"] .market-panel,
     body[data-theme="day"] .catalog-cover-card,
     body[data-theme="day"] .item-card { background: linear-gradient(180deg, rgba(255, 251, 238, 0.97), rgba(248, 236, 204, 0.93)); box-shadow: 0 16px 42px rgba(116, 83, 18, 0.16); }
@@ -393,6 +394,19 @@
       gap: 12px;
       margin-bottom: 32px;
     }
+    .contact-panel {
+      width: 100%;
+      max-width: 550px;
+      padding: 18px;
+      border: 1px solid rgba(212, 175, 55, 0.25);
+      border-radius: 16px;
+      background: rgba(3, 10, 8, 0.78);
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.38), inset 0 0 22px rgba(212, 175, 55, 0.035);
+    }
+    .contact-panel .action-grid {
+      max-width: none;
+      margin: 0;
+    }
     .btn-action {
       display: flex;
       align-items: center;
@@ -423,9 +437,10 @@
       width: 100%;
       max-width: 550px;
       background: rgba(3, 10, 8, 0.94);
-      border: 1px solid var(--card-border);
-      border-radius: 14px;
+      border: 1px solid rgba(212, 175, 55, 0.25);
+      border-radius: 16px;
       padding: 22px 18px;
+      margin-top: 24px;
       margin-bottom: 32px;
       box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), inset 0 0 25px rgba(212, 175, 55, 0.05);
     }
@@ -1567,19 +1582,21 @@
     </p>
 
     <!-- ACTION BUTTONS -->
-    <div class="action-grid">
-      <a href="https://wa.me/905324341261" target="_blank" class="btn-action btn-wp">
-        <i class="fa-brands fa-whatsapp"></i> WhatsApp
-      </a>
-      <a href="https://www.instagram.com/bagmancikuyumculuk/" target="_blank" class="btn-action btn-ig">
-        <i class="fa-brands fa-instagram"></i> Instagram
-      </a>
-      <a href="https://www.tiktok.com/@bagmanciikuyumculuk" target="_blank" class="btn-action btn-tt">
-        <i class="fa-brands fa-tiktok"></i> TikTok
-      </a>
-      <a href="https://www.google.com/maps/search/?api=1&query=Bağmancı+Kuyumculuk+Eyyübiye" target="_blank" class="btn-action btn-map">
-        <i class="fa-solid fa-map-location-dot"></i> Konum
-      </a>
+    <div class="contact-panel">
+      <div class="action-grid">
+        <a href="https://wa.me/905324341261" target="_blank" class="btn-action btn-wp">
+          <i class="fa-brands fa-whatsapp"></i> WhatsApp
+        </a>
+        <a href="https://www.instagram.com/bagmancikuyumculuk/" target="_blank" class="btn-action btn-ig">
+          <i class="fa-brands fa-instagram"></i> Instagram
+        </a>
+        <a href="https://www.tiktok.com/@bagmanciikuyumculuk" target="_blank" class="btn-action btn-tt">
+          <i class="fa-brands fa-tiktok"></i> TikTok
+        </a>
+        <a href="https://www.google.com/maps/search/?api=1&query=Bağmancı+Kuyumculuk+Eyyübiye" target="_blank" class="btn-action btn-map">
+          <i class="fa-solid fa-map-location-dot"></i> Konum
+        </a>
+      </div>
     </div>
 
     <!-- MARKET PANEL -->
