@@ -14,7 +14,11 @@
   const footer = document.querySelector('.legal-footer');
   const nav = document.querySelector('nav:has([data-nav])');
   if (nav) { nav.classList.add('view-bottom-nav'); nav.style.setProperty('z-index','30','important'); }
-  document.querySelector('.header-actions').prepend(document.getElementById('themeControl'));
+  const headerRow = document.createElement('div'); headerRow.className = 'view-header-row';
+  const brand = document.createElement('div'); brand.className = 'view-header-brand';
+  brand.append(...header.querySelectorAll('.brand-logo, .brand-sub, .header-location'));
+  headerRow.append(document.getElementById('themeControl'), brand, header.querySelector('.header-actions'));
+  header.prepend(headerRow);
   const backBar = document.createElement('div'); backBar.className = 'view-back-bar';
   backBar.innerHTML = '<button class="view-back-button" type="button"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Geri Dön</button>';
   home.before(backBar);
@@ -103,12 +107,17 @@
   function navigate(state, replace = false) {
     state = {view:state.view,...state};
     if (current && hashFor(current) === hashFor(state)) return;
-    if (current) history.replaceState({...history.state, bkView:{...current,scroll:window.scrollY}},'',location.href);
+    if (state.view === 'account' && current?.view === 'cart') {
+      history.replaceState({...history.state,bkView:{view:'home',scroll:0}},'','#home');
+    } else if (current) history.replaceState({...history.state, bkView:{...current,scroll:window.scrollY}},'',location.href);
     const depth = replace ? history.state?.bkDepth || 0 : (history.state?.bkDepth || 0) + 1;
     history[replace ? 'replaceState' : 'pushState']({bkView:state,bkDepth:depth},'',hashFor(state));
     return apply(state);
   }
-  function back() { if (history.state?.bkDepth > 0) history.back(); else navigate({view:'home'},true); }
+  function back() {
+    if (current?.view === 'account') { navigate({view:'home'},true); return; }
+    if (history.state?.bkDepth > 0) history.back(); else navigate({view:'home'},true);
+  }
   backBar.querySelector('button').onclick = back;
   window.SiteViews = {navigate, back, get current(){return current;}};
   modalGoster = id => { if (idViews[id]) { if (current?.view !== idViews[id]) navigate({view:idViews[id]}); } else originalModal(id); };
@@ -154,7 +163,14 @@
     if (!current) return; current = {...current,...patch};
     history.replaceState({...history.state,bkView:current},'',hashFor(current));
   }
-  window.addEventListener('popstate',()=>apply(history.state?.bkView || parseHash(),true));
+  window.addEventListener('popstate',()=>{
+    let state = history.state?.bkView || parseHash();
+    if (current?.view === 'account' && state.view !== 'account' && state.view !== 'home') {
+      state = {view:'home'};
+      history.replaceState({...history.state,bkView:state},'','#home');
+    }
+    apply(state,true);
+  });
   window.addEventListener('hashchange',()=>{const state=parseHash(); if(hashFor(state)!==hashFor(current)) navigate(state,true);});
   window.addEventListener('pageshow',event=>{if(event.persisted) apply(history.state?.bkView || parseHash(),true);});
   const state = history.state?.bkView || parseHash();

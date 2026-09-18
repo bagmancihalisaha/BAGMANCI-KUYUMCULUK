@@ -6,8 +6,16 @@ body.app-views .app-page .page-topbar { position: static; z-index: auto; }
 body.app-views .app-page .page-topbar > .page-close:first-child, body.app-views .app-page .cart-close, body.app-views .search-cancel { display: none; }
 body.app-views #anasayfa { z-index: 20; }
 body.app-views .view-bottom-nav { z-index: 30 !important; }
-body.app-views .header-actions .theme-control { position: relative; top: auto; left: auto; transform: none; z-index: 1; }
-body.app-views .theme-menu { left: auto; right: 0; top: calc(100% + 8px); }
+body.app-views #anasayfa { padding: 20px 16px 16px; }
+.view-header-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%; }
+.view-header-brand { flex: 1; min-width: 0; text-align: center; display: flex; flex-direction: column; align-items: center; }
+body.app-views .view-header-brand .brand-logo, body.app-views .view-header-brand .brand-sub, body.app-views .view-header-brand .header-location span { white-space: normal; overflow-wrap: anywhere; max-width: 100%; }
+body.app-views .view-header-brand .brand-logo { font-size: 30px; letter-spacing: 0; }
+body.app-views .view-header-brand .brand-sub { letter-spacing: 0; }
+body.app-views .view-header-brand .header-location { justify-content: center; flex-wrap: wrap; letter-spacing: 0; }
+body.app-views .view-header-row .theme-control, body.app-views .view-header-row .header-actions { position: relative; inset: auto; transform: none; width: 90px; flex: 0 0 90px; z-index: 1; }
+body.app-views .view-header-row .header-actions { justify-content: flex-end; }
+body.app-views .theme-menu { left: 0; right: auto; top: calc(100% + 8px); }
 .view-back-bar { max-width: 1180px; margin: 0 auto; padding: 12px 16px; }
 .view-back-button { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 12px; background: var(--bg-base); color: var(--gold-light); border: 1px solid var(--card-border); border-radius: 7px; font: inherit; cursor: pointer; }
 body.app-views .site-search { left: auto; transform: none; width: min(600px, 100%); max-width: 600px; margin: 14px auto 0; }
@@ -20,6 +28,12 @@ body.app-views .header-action-btn.bell-alert > i { animation: viewBell 1.8s ease
 @media (prefers-reduced-motion: reduce) { body.app-views .header-action-btn.bell-alert > i { animation: none; } }
 @media (max-width: 700px) {
   body.app-views #anasayfa { padding-left: 16px; padding-right: 16px; }
-  body.app-views .theme-control, body.app-views .header-actions { top: 96px; transform: none; }
-  body.app-views .site-search { margin-top: 64px; }
+  .view-header-row { gap: 8px; }
+  body.app-views .view-header-row .theme-control, body.app-views .view-header-row .header-actions { width: 76px; flex-basis: 76px; }
+  body.app-views .theme-button, body.app-views .header-action-btn { width: 34px; height: 34px; flex-basis: 34px; }
+  body.app-views .view-header-row .header-actions { gap: 8px; }
+  body.app-views .view-header-brand .brand-logo { font-size: 20px; }
+  body.app-views .view-header-brand .brand-sub, body.app-views .view-header-brand .header-location { font-size: 9px; letter-spacing: 0; }
+  body.app-views .site-search { margin-top: 14px; }
 }
+@media (max-width: 360px) { body.app-views .view-header-brand .brand-logo { font-size: 17px; } }
