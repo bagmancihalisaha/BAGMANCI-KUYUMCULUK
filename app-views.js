@@ -5,9 +5,12 @@
   const banner = document.querySelector('.banner-container'); banner.before(home);
   const main = document.querySelector('main.hero-main-content');
   const market = document.getElementById('borsa');
-  home.append(banner, main); home.after(market);
+  home.append(banner, main);
   const catalog = document.getElementById('katalog');
   const header = document.getElementById('anasayfa');
+  const updateMarketOffset = () => market.style.scrollMarginTop = `${header.offsetHeight + 12}px`;
+  new ResizeObserver(updateMarketOffset).observe(header);
+  updateMarketOffset();
   const footer = document.querySelector('.legal-footer');
   const nav = document.querySelector('nav:has([data-nav])');
   if (nav) { nav.classList.add('view-bottom-nav'); nav.style.setProperty('z-index','30','important'); }
@@ -25,7 +28,7 @@
   const originalAccount = openAccountSection, originalCartStep = showCartStep;
   const show = (node, visible) => { if (node) { node.dataset.viewHidden = String(!visible); node.hidden = !visible; } };
   function hashFor(state) {
-    const hashes = {home:'home',catalog:'katalog',market:'borsa',cart:'sepet',account:'hesabim',search:'search',messages:'account-messages',notifications:'duyurular'};
+    const hashes = {home:state.anchor === 'borsa' ? 'borsa' : 'home',catalog:'katalog',cart:'sepet',account:'hesabim',search:'search',messages:'account-messages',notifications:'duyurular'};
     const params = new URLSearchParams();
     if (state.category) params.set('category',state.category);
     if (state.model) params.set('model',state.model);
@@ -37,11 +40,16 @@
   function parseHash() {
     const [name, query] = location.hash.slice(1).split('?');
     const params = Object.fromEntries(new URLSearchParams(query));
-    const views = {home:'home',anasayfa:'home',katalog:'catalog',borsa:'market',sepet:'cart',hesabim:'account',search:'search',duyurular:'notifications','account-messages':'messages'};
+    const views = {home:'home',anasayfa:'home',katalog:'catalog',borsa:'home',sepet:'cart',hesabim:'account',search:'search',duyurular:'notifications','account-messages':'messages'};
+    if (name === 'borsa') return {view:'home',anchor:'borsa'};
     if (name?.startsWith('account-') && name !== 'account-messages') return {view:'account',section:name.slice(8),...params};
     return {view:views[name] || 'home',...params};
   }
   async function apply(state, restoring = false) {
+    if (state.view === 'market') {
+      state = {view:'home',anchor:'borsa',scroll:state.scroll};
+      history.replaceState({...history.state,bkView:state},'',hashFor(state));
+    }
     const token = ++sequence;
     const previousView = current?.view;
       current = state; applying = true;
@@ -49,15 +57,15 @@
       document.body.classList.remove('modal-page-open');
       if (state.view !== 'catalog') activeCatalogCategory = '';
       document.getElementById('themeControl')?.classList.remove('open');
-      show(home,state.view === 'home'); show(market,state.view === 'market');
+      show(home,state.view === 'home'); show(market,state.view === 'home');
       show(catalog,state.view === 'home' || state.view === 'catalog');
-      show(header,['home','market','catalog'].includes(state.view));
+      show(header,['home','catalog'].includes(state.view));
       show(footer,state.view === 'home'); show(backBar,state.view !== 'home');
       for (const [view,id] of Object.entries(pageIds)) {
         const node = document.getElementById(id); show(node,view === state.view); node.style.display = view === state.view ? 'block' : 'none';
       }
       document.getElementById('logoutConfirmModal').style.display = 'none';
-      setActiveNav(({home:'home',market:'borsa',catalog:'katalog',cart:'sepet',account:'hesabim'})[state.view] || '');
+      setActiveNav(state.anchor === 'borsa' ? 'borsa' : ({home:'home',catalog:'katalog',cart:'sepet',account:'hesabim'})[state.view] || '');
       if (pageIds[state.view] && previousView !== state.view) {
         originalModal(pageIds[state.view]);
         document.body.classList.remove('modal-page-open');
@@ -85,7 +93,10 @@
       if (state.view === 'messages') { showMessageTab('seller'); loadCustomerQuestions(); }
       if (state.view === 'notifications') { showNotificationTab('all'); loadPublicAnnouncements(); }
       if (token !== sequence) return;
-      window.scrollTo({top:restoring ? state.scroll || 0 : 0,behavior:'instant'});
+      if (state.anchor === 'borsa' && (!restoring || state.scroll == null)) {
+        updateMarketOffset();
+        market.scrollIntoView({behavior:restoring ? 'instant' : 'smooth',block:'start'});
+      } else window.scrollTo({top:restoring ? state.scroll || 0 : 0,behavior:'instant'});
       if (!restoring && state.view !== 'home') { backBar.querySelector('button').focus({preventScroll:true}); }
     } finally { if (token === sequence) applying = false; }
   }
@@ -106,8 +117,15 @@
   closeTopPages = () => {};
   goHomeNav = () => navigate({view:'home'});
   scrollToSectionTop = id => {
+    if (id === 'borsa') {
+      if (current?.view === 'home' && current.anchor === 'borsa') {
+        updateMarketOffset();
+        market.scrollIntoView({behavior:'smooth',block:'start'});
+      } else navigate({view:'home',anchor:'borsa'});
+      return;
+    }
     if (applying) return;
-    const view = id === 'borsa' ? 'market' : id === 'katalog' ? 'catalog' : 'home';
+    const view = id === 'katalog' ? 'catalog' : 'home';
     if (current?.view !== view) navigate({view});
   };
   katalogAc = category => {
