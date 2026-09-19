@@ -8,11 +8,12 @@
   home.append(banner, main);
   const catalog = document.getElementById('katalog');
   const header = document.getElementById('anasayfa');
-  const updateMarketOffset = () => market.style.scrollMarginTop = '0px';
+  const marketTopGap = 20;
+  const updateMarketOffset = () => market.style.scrollMarginTop = `${header.offsetHeight + marketTopGap}px`;
   const focusMarket = behavior => {
     updateMarketOffset();
     const elementPosition = market.getBoundingClientRect().top + window.pageYOffset;
-    const headerOffset = header.offsetHeight;
+    const headerOffset = header.offsetHeight + marketTopGap;
     window.scrollTo({top: Math.max(0, elementPosition - headerOffset), behavior});
   };
   new ResizeObserver(updateMarketOffset).observe(header);
