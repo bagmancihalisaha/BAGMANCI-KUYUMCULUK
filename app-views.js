@@ -9,7 +9,7 @@
   const catalog = document.getElementById('katalog');
   const header = document.getElementById('anasayfa');
   const marketTopGap = 20;
-  const catalogOffset = 85;
+  const catalogOffset = 130;
   const updateMarketOffset = () => market.style.scrollMarginTop = `${header.offsetHeight + marketTopGap}px`;
   const focusMarket = behavior => {
     updateMarketOffset();
@@ -18,8 +18,9 @@
     window.scrollTo({top: Math.max(0, elementPosition - headerOffset), behavior});
   };
   const focusCatalog = behavior => {
-    if (!catalog) return;
-    const elementPosition = catalog.getBoundingClientRect().top + window.pageYOffset;
+    const target = document.getElementById('katalog-baslik') || catalog;
+    if (!target) return;
+    const elementPosition = target.getBoundingClientRect().top + window.pageYOffset;
     window.scrollTo({top: Math.max(0, elementPosition - catalogOffset), behavior});
   };
   new ResizeObserver(updateMarketOffset).observe(header);
