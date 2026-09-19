@@ -42,7 +42,7 @@
   headerRow.append(document.getElementById('themeControl'), brand, header.querySelector('.header-actions'));
   header.prepend(headerRow);
   const backBar = document.createElement('div'); backBar.className = 'view-back-bar';
-  backBar.innerHTML = '<button class="view-back-button" type="button"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Geri Dön</button>';
+  backBar.innerHTML = '<button class="view-back-button" type="button" aria-label="Geri dön" title="Geri dön"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>';
   home.before(backBar);
   document.body.classList.add('app-views');
   for (const id of Object.values(pageIds)) {
