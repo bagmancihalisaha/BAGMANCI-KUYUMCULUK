@@ -1,6 +1,11 @@
 #borsa .market-table { table-layout: fixed; }
-#borsa .market-header { flex-wrap: wrap; gap: 12px; }
-#borsa .market-brand { min-width: 0; }
+#borsa .market-header { display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: nowrap; gap: 12px; }
+#borsa .market-brand { flex: 1 1 auto; min-width: 0; text-align: left; }
+#borsa .market-title { overflow-wrap: anywhere; letter-spacing: 0; }
+#borsa .market-sub { flex-wrap: wrap; gap: 6px; letter-spacing: 0; }
+#borsa .market-status-box { margin-left: auto; flex: 0 0 auto; align-items: center; }
+#borsa .live-clock { display: block; min-width: 0; white-space: nowrap; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(212, 175, 55, 0.25); border-radius: 8px; padding: 6px 12px; font-family: monospace, 'Courier New', sans-serif; font-size: 14px; font-weight: 600; color: #f7f1e3; letter-spacing: 1px; box-shadow: none; }
+body[data-theme="day"] #borsa .live-clock { background: #18221c; }
 #borsa .market-table > thead { display: none; }
 #borsa .market-table th:first-child, #borsa .market-table td:first-child { width: 42%; }
 #borsa .market-table .market-card-row > td { padding: 8px 0; border: 0; background: transparent !important; }
@@ -27,6 +32,8 @@ body[data-theme="day"] #borsa .market-highlights .market-price:not(.price-up):no
 #borsa .market-price.price-up { animation: priceUp 1.5s ease-out; }
 #borsa .market-price.price-down { animation: priceDown 1.5s ease-out; }
 @media (max-width: 620px) {
+  #borsa .market-header { gap: 8px; }
+  #borsa .market-title { font-size: 16px; }
   .market-highlights, .market-currencies { gap: 8px; }
   #borsa .market-quote-card { padding: 12px 10px; }
   #borsa .market-quote-card h3 { font-size: 15px; min-height: 36px; margin-bottom: 10px; }
