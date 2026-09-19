@@ -1541,13 +1541,15 @@
     .calculator-mode { display:none; }
     .calculator-mode.active { display:block; }
     .standard-calculator { width:min(390px,100%); margin:0 auto; padding:18px; border:1px solid rgba(212,175,55,.25); border-radius:18px; background:rgba(4,15,12,.88); box-shadow:0 18px 44px rgba(0,0,0,.5), inset 0 0 24px rgba(212,175,55,.035); }
-    .standard-display { min-height:88px; display:flex; align-items:end; justify-content:flex-end; padding:12px 14px 8px; margin-bottom:14px; overflow:hidden; border:1px solid rgba(212,175,55,.2); border-radius:12px; background:rgba(0,0,0,.72); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:#f3e5ab; text-shadow:0 0 18px rgba(212,175,55,.25); font-size:42px; font-weight:500; font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .standard-display { min-height:112px; display:flex; flex-direction:column; align-items:flex-end; justify-content:flex-end; gap:7px; padding:14px 16px 12px; margin-bottom:16px; overflow:hidden; border:1px solid rgba(212,175,55,.2); border-radius:16px; background:rgba(0,0,0,.72); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); font-variant-numeric:tabular-nums; text-align:right; }
+    .standard-expression { width:100%; min-height:22px; overflow:hidden; color:rgba(245,238,220,.62); font-size:16px; line-height:1.35; white-space:nowrap; text-overflow:ellipsis; }
+    .standard-result { width:100%; overflow:hidden; color:#f3e5ab; text-shadow:0 0 18px rgba(212,175,55,.25); font-size:38px; font-weight:500; line-height:1; white-space:nowrap; text-overflow:ellipsis; }
     .standard-keys { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
-    .standard-key { aspect-ratio:1 / 1; display:flex; align-items:center; justify-content:center; min-height:0; border:1px solid rgba(212,175,55,.15); border-radius:14px; background:#141414; color:#f3e5ab; font-size:21px; font-weight:600; cursor:pointer; transition:transform .15s, filter .15s; }
-    .standard-key:hover { filter:brightness(1.18); transform:translateY(-1px); }
-    .standard-key:active { transform:scale(.95); }
-    .standard-key.utility { background:rgba(212,175,55,.1); color:#d4af37; }
-    .standard-key.operator { border-color:rgba(212,175,55,.55); background:linear-gradient(135deg,#d4af37,#aa7c11); color:#000; font-weight:700; }
+    .standard-key { aspect-ratio:1 / 1; display:flex; align-items:center; justify-content:center; min-height:0; border:1px solid rgba(212,175,55,.12); border-radius:18px; background:rgba(255,255,255,.04); color:#f5eedc; font-size:21px; font-weight:600; cursor:pointer; transition:transform .15s, filter .15s, box-shadow .15s; }
+    .standard-key:hover { filter:brightness(1.12); }
+    .standard-key:active { transform:translateY(2px) scale(.97); box-shadow:inset 0 0 0 1px rgba(212,175,55,.34), 0 0 12px rgba(212,175,55,.18); }
+    .standard-key.utility { background:rgba(212,175,55,.08); color:#c5a059; border-color:rgba(212,175,55,.2); }
+    .standard-key.operator { border-color:rgba(197,160,89,.45); background:linear-gradient(135deg,#c5a059,#9e7d3b); color:#000; font-weight:600; box-shadow:0 4px 12px rgba(197,160,89,.25); }
     .gold-calculator { padding:20px; border:1px solid rgba(212,175,55,.25); border-radius:16px; background:rgba(255,255,255,.025); backdrop-filter:blur(8px); box-shadow:0 16px 40px rgba(0,0,0,.42), inset 0 0 20px rgba(212,175,55,.035); }
     .gold-calculator-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
     .gold-field { display:flex; flex-direction:column; gap:7px; }
@@ -1567,12 +1569,12 @@
     body[data-theme="day"] .standard-calculator { background:linear-gradient(180deg,rgba(255,251,238,.97),rgba(248,236,204,.94)); }
     body[data-theme="day"] .standard-display { background:rgba(0,0,0,.72); color:#f3e5ab; }
     body[data-theme="day"] .gold-field select, body[data-theme="day"] .gold-field input, body[data-theme="day"] .gold-summary-card { background:rgba(255,253,247,.72); color:var(--text-pearl); }
-    body[data-theme="day"] .standard-key { background:#141414; color:#f3e5ab; }
+    body[data-theme="day"] .standard-key:not(.operator):not(.utility) { background:#141414; color:#f5eedc; }
     @media (max-width:620px) {
       .calculator-page { padding:18px 12px 104px; }
       .calculator-heading h1 { font-size:29px; }
       .standard-calculator { padding:14px; }
-      .standard-key { min-height:0; }
+      .standard-key { min-height:0; border-radius:16px; }
       .gold-calculator { padding:14px; }
       .gold-calculator-grid, .gold-summary { grid-template-columns:1fr; }
       .gold-field.full, .gold-summary-card.total { grid-column:auto; }
@@ -2101,11 +2103,11 @@
 
       <section class="calculator-mode active" id="standardCalculatorMode" role="tabpanel">
         <div class="standard-calculator" aria-label="Standart hesap makinesi">
-          <div class="standard-display" id="standardCalculatorDisplay" aria-live="polite">0</div>
+          <div class="standard-display" id="standardCalculatorDisplay" aria-live="polite"><span class="standard-expression" id="standardCalculatorExpression">İşleminiz</span><strong class="standard-result" id="standardCalculatorResult">0</strong></div>
           <div class="standard-keys">
             <button class="standard-key utility" type="button" onclick="calculatorClear()">AC</button>
-            <button class="standard-key utility" type="button" onclick="calculatorToggleSign()">±</button>
-            <button class="standard-key utility" type="button" onclick="calculatorPercent()">%</button>
+            <button class="standard-key utility" type="button" onclick="calculatorParenthesis('(')">(</button>
+            <button class="standard-key utility" type="button" onclick="calculatorParenthesis(')')">)</button>
             <button class="standard-key operator" type="button" onclick="calculatorOperator('÷')">÷</button>
             <button class="standard-key" type="button" onclick="calculatorDigit('7')">7</button>
             <button class="standard-key" type="button" onclick="calculatorDigit('8')">8</button>
@@ -2119,8 +2121,9 @@
             <button class="standard-key" type="button" onclick="calculatorDigit('2')">2</button>
             <button class="standard-key" type="button" onclick="calculatorDigit('3')">3</button>
             <button class="standard-key operator" type="button" onclick="calculatorOperator('+')">+</button>
-            <button class="standard-key zero" type="button" onclick="calculatorDigit('0')">0</button>
+            <button class="standard-key" type="button" onclick="calculatorDigit('0')">0</button>
             <button class="standard-key" type="button" onclick="calculatorDecimal()">.</button>
+            <button class="standard-key utility" type="button" onclick="calculatorBackspace()" aria-label="Son karakteri sil">⌫</button>
             <button class="standard-key operator" type="button" onclick="calculatorEquals()">=</button>
           </div>
         </div>
@@ -2153,10 +2156,9 @@
     let previousMarketPrices = {};
     let latestMarketData = [];
     let goldCalculatorOperation = 'sell';
-    let standardCalculatorValue = '0';
-    let standardCalculatorStored = null;
-    let standardCalculatorOperator = null;
-    let standardCalculatorWaiting = false;
+    let standardCalculatorExpression = '';
+    let standardCalculatorResult = '0';
+    let standardCalculatorJustEvaluated = false;
     let publicAnnouncements = [];
     let notificationsLoaded = false;
     let browserAnnouncementIds = new Set();
@@ -2433,38 +2435,78 @@
       if (!standard) { renderGoldCalculatorOptions(); updateGoldCalculator(); }
     }
 
-    function updateStandardCalculatorDisplay() {
-      const display = document.getElementById('standardCalculatorDisplay');
-      if (display) display.textContent = standardCalculatorValue.length > 12 ? Number(standardCalculatorValue).toLocaleString('en-US', { maximumFractionDigits: 8 }) : standardCalculatorValue;
+    function formatStandardCalculatorNumber(value) {
+      if (!Number.isFinite(value)) return 'Hata';
+      return Number(value.toFixed(8)).toLocaleString('tr-TR', { maximumFractionDigits: 8 });
     }
-    function calculatorClear() { standardCalculatorValue = '0'; standardCalculatorStored = null; standardCalculatorOperator = null; standardCalculatorWaiting = false; updateStandardCalculatorDisplay(); }
+    function evaluateCalculatorExpression(source) {
+      const clean = String(source || '').replace(/\s/g, '');
+      if (!clean) return null;
+      const rawTokens = clean.match(/(?:\d*\.?\d+|[()+\-×÷])/g);
+      if (!rawTokens || rawTokens.join('') !== clean) return null;
+      const tokens = rawTokens.map((token, index) => token === '-' && (index === 0 || ['+','-','×','÷','('].includes(rawTokens[index - 1])) ? 'u-' : token);
+      const output = [], operators = [], precedence = {'+':1, '-':1, '×':2, '÷':2, 'u-':3};
+      for (const token of tokens) {
+        if (/^\d/.test(token) || token.startsWith('.')) output.push(Number(token));
+        else if (token === '(') operators.push(token);
+        else if (token === ')') {
+          while (operators.length && operators.at(-1) !== '(') output.push(operators.pop());
+          if (operators.pop() !== '(') return null;
+        } else {
+          while (operators.length && operators.at(-1) !== '(' && precedence[operators.at(-1)] >= precedence[token]) output.push(operators.pop());
+          operators.push(token);
+        }
+      }
+      while (operators.length) { if (operators.at(-1) === '(') return null; output.push(operators.pop()); }
+      const values = [];
+      for (const token of output) {
+        if (typeof token === 'number') values.push(token);
+        else if (token === 'u-') { if (!values.length) return null; values.push(-values.pop()); }
+        else { if (values.length < 2) return null; const b = values.pop(), a = values.pop(); const result = token === '+' ? a + b : token === '-' ? a - b : token === '×' ? a * b : b === 0 ? NaN : a / b; if (!Number.isFinite(result)) return null; values.push(result); }
+      }
+      return values.length === 1 && Number.isFinite(values[0]) ? values[0] : null;
+    }
+    function updateStandardCalculatorDisplay(preview = true) {
+      const expression = document.getElementById('standardCalculatorExpression');
+      const result = document.getElementById('standardCalculatorResult');
+      const liveResult = preview ? evaluateCalculatorExpression(standardCalculatorExpression) : null;
+      if (expression) expression.textContent = standardCalculatorExpression || 'İşleminiz';
+      if (result) result.textContent = liveResult === null ? standardCalculatorResult : formatStandardCalculatorNumber(liveResult);
+    }
+    function calculatorClear() { standardCalculatorExpression = ''; standardCalculatorResult = '0'; standardCalculatorJustEvaluated = false; updateStandardCalculatorDisplay(false); }
     function calculatorDigit(digit) {
-      if (standardCalculatorWaiting || standardCalculatorValue === 'Error') { standardCalculatorValue = digit; standardCalculatorWaiting = false; }
-      else standardCalculatorValue = standardCalculatorValue === '0' ? digit : standardCalculatorValue + digit;
+      if (standardCalculatorJustEvaluated) { standardCalculatorExpression = ''; standardCalculatorJustEvaluated = false; }
+      const last = standardCalculatorExpression.at(-1);
+      if (last === ')') standardCalculatorExpression += '×';
+      standardCalculatorExpression += digit;
       updateStandardCalculatorDisplay();
     }
     function calculatorDecimal() {
-      if (standardCalculatorWaiting || standardCalculatorValue === 'Error') { standardCalculatorValue = '0.'; standardCalculatorWaiting = false; }
-      else if (!standardCalculatorValue.includes('.')) standardCalculatorValue += '.';
+      if (standardCalculatorJustEvaluated) { standardCalculatorExpression = ''; standardCalculatorJustEvaluated = false; }
+      const lastPart = standardCalculatorExpression.split(/[+\-×÷()]/).at(-1) || '';
+      if (!lastPart.includes('.')) standardCalculatorExpression += lastPart ? '.' : '0.';
       updateStandardCalculatorDisplay();
     }
-    function calculatorToggleSign() { if (standardCalculatorValue !== '0' && standardCalculatorValue !== 'Error') standardCalculatorValue = String(Number(standardCalculatorValue) * -1); updateStandardCalculatorDisplay(); }
-    function calculatorPercent() { if (standardCalculatorValue !== 'Error') standardCalculatorValue = String(Number(standardCalculatorValue) / 100); updateStandardCalculatorDisplay(); }
-    function calculateStandardResult() {
-      const current = Number(standardCalculatorValue);
-      if (!Number.isFinite(current) || standardCalculatorStored === null || !standardCalculatorOperator) return;
-      const operations = {'+':(a,b)=>a+b, '-':(a,b)=>a-b, '×':(a,b)=>a*b, '÷':(a,b)=>b === 0 ? NaN : a/b};
-      const result = operations[standardCalculatorOperator]?.(standardCalculatorStored, current);
-      standardCalculatorValue = Number.isFinite(result) ? String(Number(result.toFixed(8))) : 'Error';
-      standardCalculatorStored = null; standardCalculatorOperator = null; standardCalculatorWaiting = true;
+    function calculatorParenthesis(parenthesis) {
+      if (standardCalculatorJustEvaluated) { standardCalculatorExpression = ''; standardCalculatorJustEvaluated = false; }
+      const last = standardCalculatorExpression.at(-1);
+      if (parenthesis === '(') standardCalculatorExpression += last && (/[\d)]/.test(last)) ? '×(' : '(';
+      else if ((standardCalculatorExpression.match(/\(/g) || []).length > (standardCalculatorExpression.match(/\)/g) || []).length && last && /[\d)]/.test(last)) standardCalculatorExpression += ')';
       updateStandardCalculatorDisplay();
     }
+    function calculatorBackspace() { if (standardCalculatorJustEvaluated) standardCalculatorJustEvaluated = false; standardCalculatorExpression = standardCalculatorExpression.slice(0, -1); updateStandardCalculatorDisplay(); }
     function calculatorOperator(operator) {
-      if (standardCalculatorValue === 'Error') calculatorClear();
-      if (standardCalculatorOperator && !standardCalculatorWaiting) calculateStandardResult();
-      standardCalculatorStored = Number(standardCalculatorValue); standardCalculatorOperator = operator; standardCalculatorWaiting = true;
+      if (standardCalculatorJustEvaluated) standardCalculatorJustEvaluated = false;
+      if (!standardCalculatorExpression) return;
+      if (/[+\-×÷]$/.test(standardCalculatorExpression)) standardCalculatorExpression = standardCalculatorExpression.slice(0, -1) + operator;
+      else if (!/[.(]$/.test(standardCalculatorExpression)) standardCalculatorExpression += operator;
+      updateStandardCalculatorDisplay();
     }
-    function calculatorEquals() { if (standardCalculatorOperator) calculateStandardResult(); }
+    function calculatorEquals() {
+      const value = evaluateCalculatorExpression(standardCalculatorExpression);
+      if (value === null) { standardCalculatorResult = 'Hata'; updateStandardCalculatorDisplay(false); return; }
+      standardCalculatorResult = formatStandardCalculatorNumber(value); standardCalculatorJustEvaluated = true; updateStandardCalculatorDisplay(false);
+    }
 
     const GOLD_CALCULATOR_ITEMS = [
       ['HAS', 'Has Altın (Gr)', 'gram'], ['22_ayar_bilezik', '22 Ayar Bilezik', 'gram'], ['hurda', '22 Ayar Hurda', 'gram'],
