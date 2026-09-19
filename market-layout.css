@@ -5,7 +5,12 @@
 #borsa .market-sub { flex-wrap: wrap; gap: 6px; letter-spacing: 0; }
 #borsa .market-status-box { margin-left: auto; flex: 0 0 auto; align-items: center; }
 #borsa .live-clock { display: block; min-width: 0; white-space: nowrap; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(212, 175, 55, 0.25); border-radius: 8px; padding: 6px 12px; font-family: monospace, 'Courier New', sans-serif; font-size: 14px; font-weight: 600; color: #f7f1e3; letter-spacing: 1px; box-shadow: none; }
-body[data-theme="day"] #borsa .live-clock { background: #18221c; }
+body[data-theme="day"] #borsa .live-clock {
+  background: rgba(212, 175, 55, 0.08);
+  border-color: rgba(140, 107, 35, 0.25);
+  color: #8c6b23;
+  box-shadow: 0 4px 12px rgba(140, 107, 35, 0.08);
+}
 #borsa .market-table > thead { display: none; }
 #borsa .market-table th:first-child, #borsa .market-table td:first-child { width: 42%; }
 #borsa .market-table .market-card-row > td { padding: 8px 0; border: 0; background: transparent !important; }
@@ -31,6 +36,27 @@ body[data-theme="day"] #borsa .market-highlights .market-price:not(.price-up):no
 @keyframes priceDown { 0% { color: #ef4444; text-shadow: 0 0 8px rgba(239, 68, 68, 0.6); } 100% { color: inherit; text-shadow: none; } }
 #borsa .market-price.price-up { animation: priceUp 1.5s ease-out; }
 #borsa .market-price.price-down { animation: priceDown 1.5s ease-out; }
+
+/* Gündüz modu: borsa metinleri fildişi zeminde tok ve okunaklı kalır. */
+body[data-theme="day"] #borsa .market-title,
+body[data-theme="day"] #borsa .market-group-heading th:first-child,
+body[data-theme="day"] #borsa .market-highlights .market-quote-card h3,
+body[data-theme="day"] #borsa .market-lira { color: #8c6b23; }
+body[data-theme="day"] #borsa .market-group-heading th,
+body[data-theme="day"] #borsa .market-side-label,
+body[data-theme="day"] #borsa .market-table td:first-child { color: #1e2321; }
+body[data-theme="day"] #borsa .market-price,
+body[data-theme="day"] #borsa .market-highlights .market-price,
+body[data-theme="day"] #borsa .market-row-up .market-price,
+body[data-theme="day"] #borsa .market-row-down .market-price {
+  color: #946c1a;
+  font-weight: 700;
+}
+body[data-theme="day"] #borsa .market-highlights .market-quote-card {
+  background: rgba(255, 255, 255, 0.58);
+  border-color: rgba(140, 107, 35, 0.25);
+  box-shadow: 0 4px 18px rgba(140, 107, 35, 0.1), inset 0 0 12px rgba(212, 175, 55, 0.04);
+}
 @media (max-width: 620px) {
   #borsa .market-header { gap: 8px; }
   #borsa .market-title { font-size: 16px; }

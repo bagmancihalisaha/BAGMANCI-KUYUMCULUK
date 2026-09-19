@@ -26,6 +26,20 @@ body.app-views .theme-button:focus-visible, body.app-views .header-action-btn:fo
 body.app-views .header-action-btn.bell-alert { animation: none; }
 body.app-views .header-action-btn.bell-alert > i { animation: viewBell 1.8s ease-in-out 2; transform-origin: center; }
 @keyframes viewBell { 0%,100% { transform: scale(1) rotate(0); } 25% { transform: scale(1.08) rotate(-6deg); } 50% { transform: scale(1.08) rotate(6deg); } 75% { transform: scale(1.04) rotate(-3deg); } }
+body.app-views[data-theme="day"] .theme-button,
+body.app-views[data-theme="day"] .header-action-btn {
+  background: #fdfbf7 !important;
+  color: #8c6b23 !important;
+  border-color: rgba(140, 107, 35, 0.28) !important;
+  box-shadow: 0 4px 12px rgba(140, 107, 35, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.85) !important;
+}
+body.app-views[data-theme="day"] .theme-button:hover,
+body.app-views[data-theme="day"] .header-action-btn:hover {
+  background: #fff !important;
+  color: #735414 !important;
+  border-color: rgba(140, 107, 35, 0.5) !important;
+  box-shadow: 0 6px 16px rgba(140, 107, 35, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.95) !important;
+}
 @media (prefers-reduced-motion: reduce) { body.app-views .header-action-btn.bell-alert > i { animation: none; } }
 @media (max-width: 700px) {
   body.app-views #anasayfa { padding-left: 16px; padding-right: 16px; }
