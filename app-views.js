@@ -9,7 +9,7 @@
   const catalog = document.getElementById('katalog');
   const header = document.getElementById('anasayfa');
   const marketTopGap = 20;
-  const catalogOffset = 90;
+  const catalogGap = 16;
   const updateMarketOffset = () => market.style.scrollMarginTop = `${header.offsetHeight + marketTopGap}px`;
   const focusMarket = behavior => {
     updateMarketOffset();
@@ -21,9 +21,17 @@
     const target = document.getElementById('katalog-baslik') || catalog;
     if (!target) return;
     const elementPosition = target.getBoundingClientRect().top + window.pageYOffset;
-    window.scrollTo({top: Math.max(0, elementPosition - catalogOffset), behavior});
+    const fixedOffset = header.offsetHeight + catalogGap;
+    target.style.scrollMarginTop = `${fixedOffset}px`;
+    catalog.style.scrollMarginTop = `${fixedOffset}px`;
+    window.scrollTo({top: Math.max(0, elementPosition - fixedOffset), behavior});
   };
-  new ResizeObserver(updateMarketOffset).observe(header);
+  new ResizeObserver(() => {
+    updateMarketOffset();
+    const fixedOffset = header.offsetHeight + catalogGap;
+    document.getElementById('katalog-baslik')?.style.setProperty('scroll-margin-top', `${fixedOffset}px`);
+    catalog.style.scrollMarginTop = `${fixedOffset}px`;
+  }).observe(header);
   updateMarketOffset();
   const footer = document.querySelector('.legal-footer');
   const nav = document.querySelector('nav:has([data-nav])');
