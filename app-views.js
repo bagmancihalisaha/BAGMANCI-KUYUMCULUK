@@ -9,12 +9,18 @@
   const catalog = document.getElementById('katalog');
   const header = document.getElementById('anasayfa');
   const marketTopGap = 20;
+  const catalogOffset = 85;
   const updateMarketOffset = () => market.style.scrollMarginTop = `${header.offsetHeight + marketTopGap}px`;
   const focusMarket = behavior => {
     updateMarketOffset();
     const elementPosition = market.getBoundingClientRect().top + window.pageYOffset;
     const headerOffset = header.offsetHeight + marketTopGap;
     window.scrollTo({top: Math.max(0, elementPosition - headerOffset), behavior});
+  };
+  const focusCatalog = behavior => {
+    if (!catalog) return;
+    const elementPosition = catalog.getBoundingClientRect().top + window.pageYOffset;
+    window.scrollTo({top: Math.max(0, elementPosition - catalogOffset), behavior});
   };
   new ResizeObserver(updateMarketOffset).observe(header);
   updateMarketOffset();
@@ -35,6 +41,14 @@
     node.className = id === 'calculator-view' ? 'app-page calculator-page' : 'app-page'; node.removeAttribute('aria-modal'); node.setAttribute('role','region');
   }
   let applying = false, current, sequence = 0;
+  const syncScrollNav = () => {
+    if (!current || current.view !== 'home' || applying) return;
+    const pageY = window.pageYOffset + 85;
+    const marketTop = market.getBoundingClientRect().top + window.pageYOffset;
+    const catalogTop = catalog.getBoundingClientRect().top + window.pageYOffset;
+    const active = pageY >= catalogTop - 12 ? 'katalog' : pageY >= marketTop - 12 ? 'borsa' : 'home';
+    setActiveNav(active);
+  };
   const originalModal = modalGoster, originalCategory = katalogAc;
   const originalAccount = openAccountSection, originalCartStep = showCartStep;
   const show = (node, visible) => { if (node) { node.dataset.viewHidden = String(!visible); node.hidden = !visible; } };
@@ -130,7 +144,11 @@
   const originalClose = modalKapat;
   modalKapat = id => { if (idViews[id]) back(); else originalClose(id); };
   closeTopPages = () => {};
-  goHomeNav = () => navigate({view:'home'});
+  goHomeNav = () => {
+    const focusHome = () => { setActiveNav('home'); window.scrollTo({top:0,behavior:'smooth'}); };
+    if (current?.view !== 'home') return navigate({view:'home'}).then(focusHome);
+    focusHome();
+  };
   scrollToSectionTop = id => {
     if (id === 'borsa') {
       if (current?.view === 'home' && current.anchor === 'borsa') {
@@ -138,9 +156,15 @@
       } else navigate({view:'home',anchor:'borsa'});
       return;
     }
+    if (id === 'katalog') {
+      const focus = () => { setActiveNav('katalog'); focusCatalog('smooth'); };
+      if (current?.view === 'catalog') { focus(); return; }
+      if (current?.view !== 'home') return navigate({view:'home'}).then(focus);
+      focus();
+      return;
+    }
     if (applying) return;
-    const view = id === 'katalog' ? 'catalog' : 'home';
-    if (current?.view !== view) navigate({view});
+    if (current?.view !== 'home') navigate({view:'home'});
   };
   katalogAc = category => {
     if (current?.view === 'catalog' && current.category === category) return originalCategory(category);
@@ -164,6 +188,8 @@
   document.querySelector('.brand-logo').onclick = event => {event.preventDefault();goHomeNav();};
   document.getElementById('searchPageInput').addEventListener('input',event=>remember({q:event.target.value}));
   document.getElementById('catalogFilters').addEventListener('click',()=>remember({model:activeCatalogModel}));
+  window.addEventListener('scroll', syncScrollNav, {passive:true});
+  window.addEventListener('resize', syncScrollNav);
   function remember(patch) {
     if (!current) return; current = {...current,...patch};
     history.replaceState({...history.state,bkView:current},'',hashFor(current));
