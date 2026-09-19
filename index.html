@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="BK">
   <script src="pwa.js?v=bk-opening-20260919" defer></script>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>BAĞMANCI Kuyumculuk & Saat | Şanlıurfa Eyyübiye</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1529,6 +1529,7 @@
   <link rel="stylesheet" href="market-layout.css?v=1">
   <style>
     .calculator-button { flex: 0 0 40px; }
+    input, select, textarea { font-size: 16px !important; }
     .calculator-page { min-height: calc(100dvh - 150px); padding: 24px 16px 110px; background: var(--bg-base); color: var(--text-pearl); }
     .calculator-shell { width: min(780px, 100%); margin: 0 auto; }
     .calculator-heading { display:flex; align-items:end; justify-content:space-between; gap:16px; margin-bottom:18px; }
@@ -1540,14 +1541,13 @@
     .calculator-mode { display:none; }
     .calculator-mode.active { display:block; }
     .standard-calculator { width:min(390px,100%); margin:0 auto; padding:18px; border:1px solid rgba(212,175,55,.25); border-radius:18px; background:rgba(4,15,12,.88); box-shadow:0 18px 44px rgba(0,0,0,.5), inset 0 0 24px rgba(212,175,55,.035); }
-    .standard-display { min-height:88px; display:flex; align-items:end; justify-content:flex-end; padding:12px 14px 8px; margin-bottom:14px; overflow:hidden; border:1px solid rgba(212,175,55,.18); border-radius:12px; background:#020605; color:#f7e8c3; font-size:42px; font-weight:500; font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .standard-display { min-height:88px; display:flex; align-items:end; justify-content:flex-end; padding:12px 14px 8px; margin-bottom:14px; overflow:hidden; border:1px solid rgba(212,175,55,.2); border-radius:12px; background:rgba(0,0,0,.72); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:#f3e5ab; text-shadow:0 0 18px rgba(212,175,55,.25); font-size:42px; font-weight:500; font-variant-numeric:tabular-nums; white-space:nowrap; }
     .standard-keys { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
-    .standard-key { min-height:58px; border:0; border-radius:50%; background:#2a302e; color:#f7f6f2; font-size:21px; font-weight:600; cursor:pointer; transition:transform .15s, filter .15s; }
+    .standard-key { aspect-ratio:1 / 1; display:flex; align-items:center; justify-content:center; min-height:0; border:1px solid rgba(212,175,55,.15); border-radius:14px; background:#141414; color:#f3e5ab; font-size:21px; font-weight:600; cursor:pointer; transition:transform .15s, filter .15s; }
     .standard-key:hover { filter:brightness(1.18); transform:translateY(-1px); }
     .standard-key:active { transform:scale(.95); }
-    .standard-key.utility { background:#69716c; color:#07130f; }
-    .standard-key.operator { background:#d97725; color:#fff8ec; }
-    .standard-key.zero { grid-column:span 2; border-radius:32px; text-align:left; padding-left:23px; }
+    .standard-key.utility { background:rgba(212,175,55,.1); color:#d4af37; }
+    .standard-key.operator { border-color:rgba(212,175,55,.55); background:linear-gradient(135deg,#d4af37,#aa7c11); color:#000; font-weight:700; }
     .gold-calculator { padding:20px; border:1px solid rgba(212,175,55,.25); border-radius:16px; background:rgba(255,255,255,.025); backdrop-filter:blur(8px); box-shadow:0 16px 40px rgba(0,0,0,.42), inset 0 0 20px rgba(212,175,55,.035); }
     .gold-calculator-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
     .gold-field { display:flex; flex-direction:column; gap:7px; }
@@ -1565,13 +1565,14 @@
     .gold-summary-card.total { grid-column:1 / -1; background:linear-gradient(135deg,rgba(212,175,55,.14),rgba(2,6,5,.55)); }
     .gold-summary-card.total strong { color:var(--gold-primary); font-size:32px; }
     body[data-theme="day"] .standard-calculator { background:linear-gradient(180deg,rgba(255,251,238,.97),rgba(248,236,204,.94)); }
-    body[data-theme="day"] .standard-display, body[data-theme="day"] .gold-field select, body[data-theme="day"] .gold-field input, body[data-theme="day"] .gold-summary-card { background:rgba(255,253,247,.72); color:var(--text-pearl); }
-    body[data-theme="day"] .standard-key { background:#e5d8b9; color:#083f31; }
+    body[data-theme="day"] .standard-display { background:rgba(0,0,0,.72); color:#f3e5ab; }
+    body[data-theme="day"] .gold-field select, body[data-theme="day"] .gold-field input, body[data-theme="day"] .gold-summary-card { background:rgba(255,253,247,.72); color:var(--text-pearl); }
+    body[data-theme="day"] .standard-key { background:#141414; color:#f3e5ab; }
     @media (max-width:620px) {
       .calculator-page { padding:18px 12px 104px; }
       .calculator-heading h1 { font-size:29px; }
       .standard-calculator { padding:14px; }
-      .standard-key { min-height:54px; }
+      .standard-key { min-height:0; }
       .gold-calculator { padding:14px; }
       .gold-calculator-grid, .gold-summary { grid-template-columns:1fr; }
       .gold-field.full, .gold-summary-card.total { grid-column:auto; }
