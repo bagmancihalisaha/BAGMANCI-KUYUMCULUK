@@ -1544,16 +1544,16 @@
     .standard-display { min-height:112px; display:flex; flex-direction:column; align-items:flex-end; justify-content:flex-end; gap:7px; padding:14px 16px 12px; margin-bottom:16px; overflow:hidden; border:1px solid rgba(212,175,55,.2); border-radius:16px; background:rgba(0,0,0,.72); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); font-variant-numeric:tabular-nums; text-align:right; }
     .standard-expression { width:100%; min-height:22px; overflow:hidden; color:rgba(245,238,220,.62); font-size:16px; line-height:1.35; white-space:nowrap; text-overflow:ellipsis; }
     .standard-result { width:100%; overflow:hidden; color:#f3e5ab; text-shadow:0 0 18px rgba(212,175,55,.25); font-size:38px; font-weight:500; line-height:1; white-space:nowrap; text-overflow:ellipsis; }
-    .standard-keys { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; padding:16px; background:rgba(12,16,14,.75); backdrop-filter:blur(25px); -webkit-backdrop-filter:blur(25px); border:1px solid rgba(212,175,55,.2); border-radius:28px; box-shadow:0 30px 60px rgba(0,0,0,.9), inset 0 1px 1px rgba(255,255,255,.05); }
-    .standard-key { aspect-ratio:1 / 1; display:flex; align-items:center; justify-content:center; border:0; outline:none; border-radius:18px; font-family:inherit; font-size:1.25rem; font-weight:500; cursor:pointer; transition:all .15s cubic-bezier(.4,0,.2,1); user-select:none; -webkit-tap-highlight-color:transparent; }
-    .standard-key:active { transform:scale(.94); }
-    .standard-key:hover { filter:brightness(1.1); }
-    .standard-key:not(.operator):not(.utility) { background:linear-gradient(180deg,rgba(32,36,34,.8) 0%,rgba(18,20,19,.9) 100%); color:#f5eedc; border:1px solid rgba(212,175,55,.12); box-shadow:0 4px 10px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.08); }
+    .standard-keys { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; padding:20px; max-width:380px; margin:0 auto; background:rgba(12,16,14,.75); backdrop-filter:blur(25px); -webkit-backdrop-filter:blur(25px); border:1px solid rgba(212,175,55,.2); border-radius:28px; box-shadow:0 30px 60px rgba(0,0,0,.9), inset 0 1px 1px rgba(255,255,255,.05); }
+    .standard-key { aspect-ratio:1 / 1; display:flex; align-items:center; justify-content:center; border:0; outline:none; border-radius:22.5%; font-family:-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif; font-size:1.25rem; line-height:1; font-weight:500; cursor:pointer; transition:transform .12s ease, filter .12s ease, box-shadow .12s ease; user-select:none; -webkit-tap-highlight-color:transparent; }
+    .standard-key:active { transform:scale(.92); }
+    .standard-key:hover { filter:brightness(1.08); }
+    .standard-key:not(.operator):not(.utility) { background:linear-gradient(165deg,#242b27 0%,#131715 100%); color:#f7f1e3; border:1px solid rgba(212,175,55,.15); box-shadow:inset 0 1px 1px rgba(255,255,255,.12); }
     .standard-key:not(.operator):not(.utility):active { background:rgba(212,175,55,.15); border-color:rgba(212,175,55,.4); }
-    .standard-key.utility { background:rgba(212,175,55,.06); color:#c5a059; font-size:1.05rem; border:1px solid rgba(212,175,55,.18); box-shadow:inset 0 1px 0 rgba(255,255,255,.03); }
+    .standard-key.utility { background:linear-gradient(165deg,rgba(212,175,55,.15) 0%,rgba(212,175,55,.05) 100%); color:#d4af37; font-size:1.05rem; border:1px solid rgba(212,175,55,.25); box-shadow:none; }
     .standard-key.utility:active { background:rgba(212,175,55,.18); color:#fff; }
-    .standard-key.operator { background:linear-gradient(145deg,#dfba6b 0%,#9e7d3b 100%); color:#0b0d0c; font-weight:700; border:1px solid rgba(255,235,179,.4); box-shadow:0 6px 16px rgba(197,160,89,.25), inset 0 1px 1px rgba(255,255,255,.5); }
-    .standard-key.operator:active { filter:brightness(1.15); box-shadow:0 2px 8px rgba(197,160,89,.4); }
+    .standard-key.operator { background:linear-gradient(165deg,#e8c779 0%,#b38938 100%); color:#121513; font-weight:600; border:1px solid rgba(255,235,179,.4); box-shadow:0 8px 20px rgba(179,137,56,.35); }
+    .standard-key.operator:active { filter:brightness(1.08); box-shadow:0 3px 10px rgba(179,137,56,.42); }
     .gold-calculator { padding:20px; border:1px solid rgba(212,175,55,.25); border-radius:16px; background:rgba(255,255,255,.025); backdrop-filter:blur(8px); box-shadow:0 16px 40px rgba(0,0,0,.42), inset 0 0 20px rgba(212,175,55,.035); }
     .gold-calculator-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
     .gold-field { display:flex; flex-direction:column; gap:7px; }
@@ -1578,8 +1578,8 @@
       .calculator-page { padding:18px 12px 104px; }
       .calculator-heading h1 { font-size:29px; }
       .standard-calculator { padding:14px; }
-      .standard-keys { gap:9px; padding:10px; border-radius:22px; }
-      .standard-key { min-height:0; border-radius:16px; }
+      .standard-keys { gap:10px; padding:14px; border-radius:24px; }
+      .standard-key { min-height:0; }
       .gold-calculator { padding:14px; }
       .gold-calculator-grid, .gold-summary { grid-template-columns:1fr; }
       .gold-field.full, .gold-summary-card.total { grid-column:auto; }
