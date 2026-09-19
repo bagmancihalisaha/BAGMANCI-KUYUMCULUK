@@ -9,7 +9,7 @@
   const catalog = document.getElementById('katalog');
   const header = document.getElementById('anasayfa');
   const marketTopGap = 20;
-  const catalogOffset = 130;
+  const catalogOffset = 90;
   const updateMarketOffset = () => market.style.scrollMarginTop = `${header.offsetHeight + marketTopGap}px`;
   const focusMarket = behavior => {
     updateMarketOffset();
