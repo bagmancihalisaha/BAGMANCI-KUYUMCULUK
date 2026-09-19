@@ -8,7 +8,13 @@
   home.append(banner, main);
   const catalog = document.getElementById('katalog');
   const header = document.getElementById('anasayfa');
-  const updateMarketOffset = () => market.style.scrollMarginTop = `${header.offsetHeight + 12}px`;
+  const updateMarketOffset = () => market.style.scrollMarginTop = '0px';
+  const focusMarket = behavior => {
+    updateMarketOffset();
+    const elementPosition = market.getBoundingClientRect().top + window.pageYOffset;
+    const headerOffset = header.offsetHeight;
+    window.scrollTo({top: Math.max(0, elementPosition - headerOffset), behavior});
+  };
   new ResizeObserver(updateMarketOffset).observe(header);
   updateMarketOffset();
   const footer = document.querySelector('.legal-footer');
@@ -98,8 +104,7 @@
       if (state.view === 'notifications') { showNotificationTab('all'); loadPublicAnnouncements(); }
       if (token !== sequence) return;
       if (state.anchor === 'borsa' && (!restoring || state.scroll == null)) {
-        updateMarketOffset();
-        market.scrollIntoView({behavior:restoring ? 'instant' : 'smooth',block:'start'});
+        focusMarket(restoring ? 'auto' : 'smooth');
       } else window.scrollTo({top:restoring ? state.scroll || 0 : 0,behavior:'instant'});
       if (!restoring && state.view !== 'home') { backBar.querySelector('button').focus({preventScroll:true}); }
     } finally { if (token === sequence) applying = false; }
@@ -128,8 +133,7 @@
   scrollToSectionTop = id => {
     if (id === 'borsa') {
       if (current?.view === 'home' && current.anchor === 'borsa') {
-        updateMarketOffset();
-        market.scrollIntoView({behavior:'smooth',block:'start'});
+        focusMarket('smooth');
       } else navigate({view:'home',anchor:'borsa'});
       return;
     }
