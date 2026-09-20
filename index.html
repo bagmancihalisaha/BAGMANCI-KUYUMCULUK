@@ -283,6 +283,29 @@
     .search-ai-line.active { display:block; }
     .search-results-empty { grid-column:1/-1; border:1px dashed rgba(212,175,55,.28); border-radius:12px; padding:18px; color:var(--text-muted); background:rgba(255,255,255,.05); display:grid; gap:6px; }
     .search-results-empty strong { color:var(--gold-light); font-size:16px; }
+    .visual-search-modal[hidden] { display:none; }
+    .visual-search-modal { position:fixed; inset:0; z-index:280; display:grid; place-items:center; padding:20px; background:rgba(0,0,0,.7); backdrop-filter:blur(12px); }
+    .visual-search-card { width:min(460px,100%); display:grid; gap:16px; padding:22px; border:1px solid rgba(212,175,55,.3); border-radius:20px; background:linear-gradient(145deg,rgba(4,20,15,.98),rgba(2,7,6,.98)); box-shadow:0 26px 70px rgba(0,0,0,.6), inset 0 0 28px rgba(212,175,55,.04); }
+    .visual-search-head { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .visual-search-head h3 { margin:0; color:var(--gold-light); font:700 25px/1.1 'Cormorant Garamond',serif; }
+    .visual-search-close { width:36px; height:36px; border:1px solid rgba(212,175,55,.22); border-radius:10px; background:transparent; color:var(--text-muted); cursor:pointer; }
+    .visual-search-preview { position:relative; display:grid; place-items:center; min-height:180px; overflow:hidden; border:1px dashed rgba(212,175,55,.28); border-radius:14px; background:rgba(255,255,255,.04); }
+    .visual-search-preview img { width:100%; max-height:300px; object-fit:contain; display:block; }
+    .visual-search-scanner { position:absolute; inset:12% 0 auto; height:2px; background:linear-gradient(90deg,transparent,#f3d98a,transparent); box-shadow:0 0 18px rgba(243,217,138,.9); animation:visualScan 1.8s ease-in-out infinite; }
+    .visual-search-preview.analyzing::after { content:''; position:absolute; inset:0; border:1px solid rgba(243,217,138,.35); border-radius:14px; animation:visualPulse 1.5s ease-in-out infinite; pointer-events:none; }
+    @keyframes visualScan { 0% { transform:translateY(0); opacity:.35; } 50% { opacity:1; } 100% { transform:translateY(250px); opacity:.35; } }
+    @keyframes visualPulse { 0%,100% { opacity:.35; transform:scale(.98); } 50% { opacity:1; transform:scale(1); } }
+    .visual-search-status { min-height:22px; color:var(--text-muted); text-align:center; font-size:13px; font-weight:700; }
+    .visual-search-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .visual-search-actions button { min-height:48px; border:1px solid rgba(212,175,55,.3); border-radius:12px; background:rgba(212,175,55,.09); color:var(--gold-light); font:800 13px Montserrat,sans-serif; cursor:pointer; }
+    .visual-search-actions button:hover { background:rgba(212,175,55,.18); border-color:var(--gold-primary); }
+    .visual-match-badge { display:inline-flex; margin:8px 8px 0; padding:4px 7px; border:1px solid rgba(212,175,55,.45); border-radius:999px; background:rgba(212,175,55,.16); color:var(--gold-light); font-size:9px; font-weight:900; letter-spacing:.4px; }
+    .search-product-card.visual-match { box-shadow:0 0 0 1px rgba(212,175,55,.2), 0 0 18px rgba(212,175,55,.13); }
+    body[data-theme="day"] .visual-search-modal { background:rgba(67,48,18,.35); }
+    body[data-theme="day"] .visual-search-card { background:linear-gradient(145deg,#fffdf7,#f6ecd2); border-color:rgba(140,107,35,.3); box-shadow:0 22px 60px rgba(116,83,18,.2); }
+    body[data-theme="day"] .visual-search-head h3, body[data-theme="day"] .visual-search-actions button, body[data-theme="day"] .visual-search-close { color:#8c6b23; }
+    body[data-theme="day"] .visual-search-preview { background:rgba(255,255,255,.65); border-color:rgba(140,107,35,.3); }
+    body[data-theme="day"] .visual-search-status { color:#735414; }
     body[data-theme="day"] .search-page-overlay, body[data-theme="day"] .message-page-overlay, body[data-theme="day"] .notification-page-overlay, body[data-theme="day"] .account-page-overlay { background:#f6ecd2; }
     body[data-theme="day"] .search-page { background:linear-gradient(180deg,rgba(255,250,235,.99),rgba(246,236,210,.99)); color:var(--text-pearl); }
     body[data-theme="day"] .search-callout, body[data-theme="day"] .search-assistant, body[data-theme="day"] .search-product-card, body[data-theme="day"] .search-results-empty, body[data-theme="day"] .search-ai-line { background:rgba(255,252,243,.9); color:var(--text-pearl); border-color:rgba(183,131,18,.28); }
@@ -1783,7 +1806,7 @@
           <div class="search-input-wrap">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input id="searchPageInput" type="search" placeholder="BGM-001, bilezik, yüzük veya kategori ara" oninput="renderLiveSearchResults(this.value)" onkeydown="handleSearchPageKey(event)" autocomplete="off">
-            <button class="search-camera" type="button" onclick="document.getElementById('siteVisualSearchInput').click()" aria-label="Görsel ile ara"><i class="fa-solid fa-camera"></i></button>
+            <button class="search-camera" type="button" onclick="openVisualSearchPicker()" aria-label="Görsel ile ara"><i class="fa-solid fa-camera"></i></button>
           </div>
           <button class="search-cancel" type="button" onclick="modalKapat('searchModal')">Vazgeç</button>
         </div>
@@ -1798,6 +1821,16 @@
         <div class="search-ai-line" id="searchAiLine"></div>
         <div class="search-section-title"><span id="searchResultsTitle">Arama Sonuçları</span></div>
         <div class="search-products" id="searchSuggestedProducts"></div>
+      </div>
+    </div>
+    <div class="visual-search-modal" id="visualSearchModal" hidden>
+      <div class="visual-search-card" role="dialog" aria-modal="true" aria-labelledby="visualSearchTitle">
+        <div class="visual-search-head"><h3 id="visualSearchTitle">Görsel ile ara</h3><button class="visual-search-close" type="button" onclick="closeVisualSearchPicker()" aria-label="Görsel aramayı kapat">×</button></div>
+        <div class="visual-search-preview" id="visualSearchPreview"><span>Ürün fotoğrafını seçin</span></div>
+        <div class="visual-search-status" id="visualSearchStatus">Fotoğraf çek veya galeriden bir görsel yükle.</div>
+        <div class="visual-search-actions"><button type="button" onclick="document.getElementById('visualCameraInput').click()"><i class="fa-solid fa-camera"></i> Fotoğraf Çek</button><button type="button" onclick="document.getElementById('visualGalleryInput').click()"><i class="fa-regular fa-image"></i> Galeriden Yükle</button></div>
+        <input id="visualCameraInput" type="file" accept="image/*" capture="environment" hidden onchange="handleVisualSiteSearch(event)">
+        <input id="visualGalleryInput" type="file" accept="image/*" hidden onchange="handleVisualSiteSearch(event)">
       </div>
     </div>
   </div>
@@ -2219,6 +2252,7 @@
     let catalogProducts = [];
     let productsLoaded = false;
     let catalogCategories = [];
+    let visualPreviewUrl = '';
 
     const SUKOB_DIRECT_URL = 'https://www.sukobfiyat.com/api/prices/';
     const SUKOB_PROXY_URL = '/api/sukob';
@@ -2933,50 +2967,84 @@
       return hashDiff * 0.7 + colorDiff * 0.3;
     }
 
-    async function visualSearchProducts(file, limit = 24) {
-      const uploaded = await fileToImage(file);
-      const uploadedSignature = imageSignature(uploaded);
-      URL.revokeObjectURL(uploaded.src);
-      const candidates = (catalogProducts || []).filter(item => Array.isArray(item.images) && item.images[0]);
-      const ranked = await Promise.all(candidates.map(async item => {
+    function optimizedImageDataUrl(file, maxSize = 1440) {
+      return fileToImage(file).then(image => new Promise((resolve, reject) => {
         try {
-          const image = await urlToImage(item.images[0]);
-          return { item, distance: signatureDistance(uploadedSignature, imageSignature(image)) };
-        } catch (error) {
-          return { item, distance: Number.POSITIVE_INFINITY };
-        }
+          const scale = Math.min(1, maxSize / Math.max(image.naturalWidth || image.width, image.naturalHeight || image.height));
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.round((image.naturalWidth || image.width) * scale));
+          canvas.height = Math.max(1, Math.round((image.naturalHeight || image.height) * scale));
+          canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+          URL.revokeObjectURL(image.src);
+          resolve(canvas.toDataURL('image/jpeg', .84));
+        } catch (error) { reject(error); }
       }));
-      return ranked
-        .filter(row => Number.isFinite(row.distance))
-        .sort((a, b) => a.distance - b.distance)
-        .slice(0, limit)
-        .map(row => row.item);
     }
-    function searchCardHtml(item) {
+    async function requestVisualAnalysis(file) {
+      const image = await optimizedImageDataUrl(file);
+      const response = await fetch('/api/visual-search', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ image }) });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.ok || !data.analysis) throw new Error(data.reason || 'Görsel analiz edilemedi.');
+      return data.analysis;
+    }
+    function visualCategoryTerms(value) {
+      const key = compactSearchText(value);
+      const aliases = { yuzuk:['yuzuk'], bilezik:['bilezik'], kolye:['kolye'], kupe:['kupe'], saat:['saat'], akitma:['akitma','urfa akitmasi'], frenkkagi:['frenk bagi'] };
+      return aliases[key] || (key ? [key] : []);
+    }
+    function visualProductScore(item, analysis) {
+      const analysisText = [analysis.altKategori, analysis.ayar, ...(analysis.ozellikler || []), ...(analysis.aramaTerimleri || [])].filter(Boolean).join(' ');
+      const haystack = compactSearchText(searchFields(item).concat(item.subCategory, item.sub_category, item.tags, item.etiketler).filter(Boolean).join(' '));
+      let score = 0;
+      const categoryTerms = visualCategoryTerms(analysis.kategori);
+      if (categoryTerms.some(term => haystack.includes(compactSearchText(term)))) score += 40;
+      const modelTerms = [analysis.altKategori, ...(analysis.aramaTerimleri || [])].filter(Boolean).map(compactSearchText).filter(Boolean);
+      if (modelTerms.some(term => haystack.includes(term) || term.split(' ').some(part => part.length > 3 && haystack.includes(part)))) score += 35;
+      const detailTerms = [analysis.ayar ? `${analysis.ayar} ayar` : '', ...(analysis.ozellikler || [])].filter(Boolean).map(compactSearchText).filter(Boolean);
+      const detailHits = detailTerms.filter(term => haystack.includes(term)).length;
+      if (detailHits) score += Math.min(25, Math.round((detailHits / Math.max(1, detailTerms.length)) * 25));
+      if (analysisText && !score) {
+        const queryScore = productSearchScore(item, analysisText);
+        score = Math.min(49, Math.round(queryScore / 12));
+      }
+      return Math.max(0, Math.min(100, score));
+    }
+    function rankVisualProducts(analysis, limit = 24) {
+      return (catalogProducts || []).filter(item => Array.isArray(item.images) && item.images[0]).map(item => ({ item, score: visualProductScore(item, analysis) })).sort((a,b) => b.score - a.score || String(a.item.name || '').localeCompare(String(b.item.name || ''), 'tr')).slice(0, limit);
+    }
+    async function visualSearchProducts(file, limit = 24) {
+      const analysis = await requestVisualAnalysis(file);
+      return { analysis, rows: rankVisualProducts(analysis, limit) };
+    }
+    function searchCardHtml(item, visualRow = null) {
       const price = productPrice(item);
       const image = Array.isArray(item.images) && item.images.length ? item.images[0] : 'vitrin.jpg';
       const meta = [item.sku || item.id, item.category].filter(Boolean).join(' - ');
-      return `<button class="search-product-card" type="button" onclick="selectSearchProduct('${encodeURIComponent(item.id)}')"><img src="${image}" alt="${escapeText(item.name)}" onerror="this.src='vitrin.jpg'"><strong>${escapeText(item.name)}</strong><small>${escapeText(meta || 'Bağmancı seçkisi')}</small><span>${formatCatalogPrice(price)}</span></button>`;
+      const badge = visualRow && visualRow.rank < 3 ? `<span class="visual-match-badge">En Yakın Eşleşme · %${visualRow.score}</span>` : '';
+      const matchClass = visualRow && visualRow.rank < 3 ? ' visual-match' : '';
+      return `<button class="search-product-card${matchClass}" type="button" onclick="selectSearchProduct('${encodeURIComponent(item.id)}')"><img src="${image}" alt="${escapeText(item.name)}" onerror="this.src='vitrin.jpg'">${badge}<strong>${escapeText(item.name)}</strong><small>${escapeText(meta || 'Bağmancı seçkisi')}</small><span>${formatCatalogPrice(price)}</span></button>`;
     }
     function renderSearchResults(query = '', options = {}) {
       const products = document.getElementById('searchSuggestedProducts');
       const title = document.getElementById('searchResultsTitle');
       const aiLine = document.getElementById('searchAiLine');
       if (!products) return;
-      const list = options.products || smartSearchProducts(query, 48, { withFallback: Boolean(query.trim()) });
+      const visualRows = Array.isArray(options.visualRows) ? options.visualRows : null;
+      const list = visualRows ? visualRows.map(row => row.item) : (options.products || smartSearchProducts(query, 48, { withFallback: Boolean(query.trim()) }));
       if (aiLine) {
         aiLine.classList.toggle('active', Boolean(options.note));
         aiLine.textContent = options.note || '';
       }
       if (title) {
-        if (options.visualName) title.textContent = list.length ? `Görsel için benzer ürünler (${list.length})` : 'Görsel için benzer ürünler';
+        if (options.visualSearch) title.textContent = options.visualMatch >= 50 ? `Yüklediğiniz modele en yakın altın modellerimiz (%${options.visualMatch} Eşleşme)` : 'Aradığınız modele en yakın alternatifler veya benzer koleksiyonlar';
+        else if (options.visualName) title.textContent = list.length ? `Görsel için benzer ürünler (${list.length})` : 'Görsel için benzer ürünler';
         else title.textContent = query.trim() ? `Arama Sonuçları (${list.length})` : 'Öne Çıkan Ürünler';
       }
       if (!list.length) {
-        products.innerHTML = `<div class="search-results-empty"><strong>Üzgünüz, birebir ürün bulamadık.</strong><span>İstersen ürün kodunu, kategori adını veya görsel aramayı tekrar dene; sana en yakın ürünleri de göstermeye çalışıyoruz.</span></div>`;
+        products.innerHTML = `<div class="search-results-empty"><strong>Üzgünüz, bu modele uygun ürün bulamadık.</strong><span>Aradığınız modele en yakın alternatifler veya benzer koleksiyonlar için başka bir görsel deneyin.</span></div>`;
         return;
       }
-      products.innerHTML = list.map(searchCardHtml).join('');
+      products.innerHTML = visualRows ? visualRows.map((row, index) => searchCardHtml(row.item, {...row, rank:index})).join('') : list.map(searchCardHtml).join('');
     }
     function renderSearchPage(query = '') {
       const hasQuery = Boolean((query || '').trim());
@@ -2992,9 +3060,30 @@
       document.getElementById('searchModal')?.scrollTo({ top: 0 });
       const input = document.getElementById('searchPageInput');
       const current = presetQuery ?? document.getElementById('siteSearchInput')?.value ?? '';
-      if (input) { input.value = current; setTimeout(() => input.focus(), 80); }
+      if (input) { input.value = current; if (!visual) setTimeout(() => input.focus(), 80); }
       renderSearchPage(current);
-      if (visual) setTimeout(() => document.getElementById('siteVisualSearchInput')?.click(), 120);
+      if (visual) setTimeout(openVisualSearchPicker, 120);
+    }
+    function openVisualSearchPicker() {
+      const modal = document.getElementById('visualSearchModal');
+      if (!modal) return;
+      if (visualPreviewUrl) {
+        URL.revokeObjectURL(visualPreviewUrl);
+        visualPreviewUrl = '';
+      }
+      modal.hidden = false;
+      const preview = document.getElementById('visualSearchPreview');
+      if (preview) { preview.classList.remove('analyzing'); preview.innerHTML = '<span>Ürün fotoğrafını seçin</span>'; }
+      const status = document.getElementById('visualSearchStatus');
+      if (status) status.textContent = 'Fotoğraf çek veya galeriden bir görsel yükle.';
+    }
+    function closeVisualSearchPicker() {
+      const modal = document.getElementById('visualSearchModal');
+      if (modal) modal.hidden = true;
+      const cameraInput = document.getElementById('visualCameraInput');
+      const galleryInput = document.getElementById('visualGalleryInput');
+      if (cameraInput) cameraInput.value = '';
+      if (galleryInput) galleryInput.value = '';
     }
     function renderLiveSearchResults(value) {
       const mainInput = document.getElementById('siteSearchInput');
@@ -3094,16 +3183,32 @@
       if (mainInput) mainInput.value = 'Görsel arama';
       document.getElementById('searchIntroBlocks')?.classList.add('hidden');
       document.getElementById('searchHistorySection')?.classList.add('hidden');
-      renderSearchResults('', { visualName: file.name, products: [], note: 'Görsel inceleniyor; benzer ürünler aranıyor...' });
+      const picker = document.getElementById('visualSearchModal');
+      const preview = document.getElementById('visualSearchPreview');
+      const status = document.getElementById('visualSearchStatus');
+      if (visualPreviewUrl) URL.revokeObjectURL(visualPreviewUrl);
+      visualPreviewUrl = URL.createObjectURL(file);
+      if (preview) { preview.classList.add('analyzing'); preview.innerHTML = `<img src="${visualPreviewUrl}" alt="${escapeText(file.name)}"><span class="visual-search-scanner" aria-hidden="true"></span>`; }
+      if (status) status.textContent = 'Yapay zeka modeli analiz ediyor...';
+      if (picker) picker.hidden = false;
+      renderSearchResults('', { visualSearch: true, visualMatch: 0, products: [], note: 'Görsel analiz ediliyor; ürün detayları eşleştiriliyor...' });
       try {
-        const visualMatches = await visualSearchProducts(file, 24);
+        const result = await visualSearchProducts(file, 24);
+        const rows = result.rows || [];
+        const match = rows[0]?.score || 0;
+        if (status) status.textContent = `${result.analysis.kategori || 'Takı'} modeli analiz edildi. ${rows.length} aday eşleştirildi.`;
         renderSearchResults('', {
+          visualSearch: true,
           visualName: file.name,
-          products: visualMatches.length ? visualMatches : smartSearchProducts('', 12),
-          note: visualMatches.length ? 'Görsel benzerliğine göre en yakın ürünler listelendi.' : 'Görsel okunamadı; bunun yerine öne çıkan ürünleri gösteriyorum.'
+          visualRows: rows,
+          visualMatch: match,
+          note: match >= 50 ? 'Yapay zeka etiketleri ürün kataloğundaki kategori, model ve ayar bilgileriyle eşleştirildi.' : 'Birebir eşleşme zayıf; sana en yakın alternatif koleksiyonları gösteriyoruz.'
         });
+        if (picker) picker.hidden = true;
       } catch (error) {
-        renderSearchResults('', { visualName: file.name, products: smartSearchProducts('', 12), note: 'Görsel tam okunamadı; yine de benzer olabilecek ürünleri gösteriyorum.' });
+        if (status) status.textContent = 'AI analizi tamamlanamadı; alternatif koleksiyonlar hazırlanıyor.';
+        renderSearchResults('', { visualSearch: true, visualMatch: 0, products: smartSearchProducts('', 12), note: 'Görsel analiz servisi şu an yanıt vermedi; öne çıkan benzer koleksiyonları gösteriyoruz.' });
+        setTimeout(() => { if (picker) picker.hidden = true; }, 650);
       }
       event.target.value = '';
     }
