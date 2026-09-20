@@ -50,6 +50,33 @@ test('Gemini request and endpoint regressions', async t => {
     await assert.rejects(generateGemini(request), { code: 'AI_NOT_CONFIGURED' });
     process.env.GEMINI_API_KEY = 'test-secret';
   });
+  await t.test('temporary provider failure retries and can recover', async t => {
+    let calls = 0;
+    t.mock.method(globalThis, 'fetch', async () => ++calls === 1
+      ? new Response(JSON.stringify({ error: { status: 'UNAVAILABLE', message: 'Overloaded' } }), { status: 503 })
+      : response('Recovered'));
+    assert.equal(await generateGemini(request), 'Recovered');
+    assert.equal(calls, 2);
+  });
+  await t.test('permanent image rejection preserves status and redacts credentials in logs', async t => {
+    const logs = [];
+    t.mock.method(console, 'warn', (...args) => logs.push(args));
+    let calls = 0;
+    t.mock.method(globalThis, 'fetch', async () => {
+      calls++;
+      return new Response(JSON.stringify({ error: { message: 'Unable to decode image test-secret' } }), { status: 400 });
+    });
+    await assert.rejects(generateGemini(request), { code: 'AI_IMAGE_REJECTED', upstreamStatus: 400 });
+    assert.equal(calls, 1);
+    assert.ok(!JSON.stringify(logs).includes('test-secret'));
+    assert.match(JSON.stringify(logs), /Unable to decode image/);
+  });
+  await t.test('persistent provider error stops after two attempts including non-JSON responses', async t => {
+    let calls = 0;
+    t.mock.method(globalThis, 'fetch', async () => { calls++; return new Response('Bad gateway', { status: 502 }); });
+    await assert.rejects(generateGemini(request), { code: 'AI_PROVIDER_BUSY', upstreamStatus: 502 });
+    assert.equal(calls, 2);
+  });
   await t.test('visual endpoint produces parsed JSON and assistant produces text', async t => {
     const analysis = { kategori: 'bilezik', altKategori: 'burma', ayar: '', ozellikler: ['örgü'], aramaTerimleri: ['burma'] };
     t.mock.method(globalThis, 'fetch', async (_, options) => response(JSON.parse(options.body).generationConfig.responseMimeType ? JSON.stringify(analysis) : 'Burma bilezik modelini inceleyebilirsiniz.'));
