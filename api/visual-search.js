@@ -40,7 +40,8 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ ok: false, reason: 'Method not allowed' });
   if (!originAllowed(req)) return res.status(403).json({ ok: false, reason: 'Origin denied' });
-  if (!process.env.GEMINI_API_KEY) return res.status(200).json({ ok: false, reason: 'GEMINI_API_KEY missing' });
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GOOGLE_GEMINI_API_KEY;
+  if (!apiKey) return res.status(200).json({ ok: false, reason: 'GEMINI_API_KEY missing' });
 
   const image = String(req.body?.image || '');
   const match = image.match(/^data:(image\/(?:jpeg|jpg|png|webp));base64,([A-Za-z0-9+/=]+)$/i);
@@ -48,7 +49,7 @@ export default async function handler(req, res) {
 
   const prompt = `Sen Bağmancı Kuyumculuk görsel arama motorusun. Görseldeki baskın takı veya saat modelini incele. Sadece geçerli JSON döndür, markdown kullanma. kategori yalnızca bilezik, yuzuk, kolye, kupe, akitma, saat olabilir. altKategori yalnızca burma, kelepce, baget, urfa_akitmasi, frenk_bagi olabilir. ayar yalnızca 22 veya 14 olsun; emin değilsen boş string kullan. ozellikler ve aramaTerimleri kısa Türkçe diziler olsun. Şema: {"kategori":"","altKategori":"","ayar":"","ozellikler":[],"aramaTerimleri":[]}`;
   const model = process.env.GEMINI_VISUAL_MODEL || 'gemini-2.5-flash';
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(process.env.GEMINI_API_KEY)}`, {
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

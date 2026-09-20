@@ -2081,7 +2081,7 @@
             <button class="account-back" type="button" onclick="openAccountSection('home')">‹ Hesabıma Dön</button>
             <div class="panel-kicker">Bağmancı Asistan</div>
             <p class="cart-subtitle">Satıcıya soru göndermek için üyelik girişi gerekir. Cevaplar Mesajlarım alanına düşer.</p>
-            <div class="account-form-grid"><label class="account-full">Sorunuz<textarea id="assistantQuestion" placeholder="Ürün, ölçü, kargo veya sipariş hakkında sorunuzu yazın"></textarea></label><button class="cart-btn primary account-full" onclick="submitAssistantQuestion()">Satıcıya Sor</button></div>
+            <div class="account-form-grid"><label class="account-full">Sorunuz<textarea id="assistantQuestion" placeholder="Ürün, ölçü, kargo veya sipariş hakkında sorunuzu yazın"></textarea></label><button class="cart-btn primary account-full" onclick="submitAssistantQuestion()">Bağmancı Asistan'a Sor</button><div id="assistantAiAnswer" class="search-ai-line account-full" hidden></div></div>
           </div>
         </section>
         <section class="account-section" id="accountSecuritySection">
@@ -3864,7 +3864,17 @@
       const client = getSiteContentClient();
       const question = (document.getElementById('assistantQuestion')?.value || '').trim();
       if (!question) { setAccountStatus('Sorunu yazman gerekiyor.', 'err'); return; }
-      if (!customerSession?.user) { setAccountStatus('Satıcıya soru sormak için önce e-posta veya telefon ile giriş yapman gerekiyor.', 'err'); return; }
+      const answerBox = document.getElementById('assistantAiAnswer');
+      if (answerBox) { answerBox.hidden = false; answerBox.textContent = 'Bağmancı Asistan düşünüyor...'; }
+      const products = catalogProducts.length ? catalogProducts : await loadCatalogProducts();
+      const aiAnswer = await askSearchAssistant(question, products);
+      if (answerBox) {
+        answerBox.textContent = aiAnswer || 'Asistan şu an yanıt veremedi. Lütfen biraz sonra tekrar dene.';
+      }
+      if (!customerSession?.user) {
+        setAccountStatus(aiAnswer ? 'Sorun Bağmancı Asistan tarafından yanıtlandı.' : 'Asistan servisine ulaşılamadı.', aiAnswer ? 'ok' : 'err');
+        return;
+      }
       const profile = customerProfileData();
       if (!client) { setAccountStatus('Soru sistemi Supabase bağlantısı hazır olunca aktif olacak.', 'err'); return; }
       const { error } = await client.from('customer_questions').insert({ customer_id: customerSession.user.id, name: profile.name, phone: profile.phone, email: profile.email, question });
