@@ -3090,9 +3090,9 @@
       if (mainInput) mainInput.value = value || '';
       renderSearchResults(value || '');
     }
-    async function askSearchAssistant(query, products) {
+    async function askSearchAssistant(query, products, reportErrors = false) {
       const value = (query || '').trim();
-      if (!value || !Array.isArray(products) || !products.length) return '';
+      if (!value || !Array.isArray(products)) return '';
       try {
         const response = await fetch('/api/assistant', {
           method: 'POST',
@@ -3108,10 +3108,11 @@
             }))
           })
         });
-        if (!response.ok) return '';
-        const data = await response.json();
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.ok) throw new Error(data.code ? data.reason : 'Asistan servisine ulaşılamadı. Lütfen tekrar deneyin.');
         return String(data.answer || '').trim();
       } catch (error) {
+        if (reportErrors) throw error;
         return '';
       }
     }
@@ -3207,7 +3208,7 @@
         if (picker) picker.hidden = true;
       } catch (error) {
         if (status) status.textContent = 'AI analizi tamamlanamadı; alternatif koleksiyonlar hazırlanıyor.';
-        renderSearchResults('', { visualSearch: true, visualMatch: 0, products: smartSearchProducts('', 12), note: 'Görsel analiz servisi şu an yanıt vermedi; öne çıkan benzer koleksiyonları gösteriyoruz.' });
+        renderSearchResults('', { products: smartSearchProducts('', 12), note: `${error.message || 'Görsel analiz tamamlanamadı.'} Aşağıdaki ürünler genel katalog önerileridir; fotoğrafınızla eşleştirilmemiştir.` });
         setTimeout(() => { if (picker) picker.hidden = true; }, 650);
       }
       event.target.value = '';
@@ -3865,9 +3866,14 @@
       const question = (document.getElementById('assistantQuestion')?.value || '').trim();
       if (!question) { setAccountStatus('Sorunu yazman gerekiyor.', 'err'); return; }
       const answerBox = document.getElementById('assistantAiAnswer');
-      if (answerBox) { answerBox.hidden = false; answerBox.textContent = 'Bağmancı Asistan düşünüyor...'; }
+      if (answerBox) { answerBox.hidden = false; answerBox.classList.add('active'); answerBox.setAttribute('role', 'status'); answerBox.textContent = 'Bağmancı Asistan düşünüyor...'; }
       const products = catalogProducts.length ? catalogProducts : await loadCatalogProducts();
-      const aiAnswer = await askSearchAssistant(question, products);
+      let aiAnswer;
+      try { aiAnswer = await askSearchAssistant(question, products, true); }
+      catch (error) {
+        if (answerBox) answerBox.textContent = error.message || 'Asistan servisine ulaşılamadı.';
+        return;
+      }
       if (answerBox) {
         answerBox.textContent = aiAnswer || 'Asistan şu an yanıt veremedi. Lütfen biraz sonra tekrar dene.';
       }
@@ -3882,7 +3888,7 @@
       notifyOwner('question', { name: profile.name, phone: profile.phone, email: profile.email, question });
       document.getElementById('assistantQuestion').value = '';
       await loadCustomerQuestions();
-      setAccountStatus('Sorun satıcıya gönderildi. Cevap geldiğinde Mesajlarım alanında görünecek.', 'ok'); openAccountSection('home');
+      setAccountStatus('Sorun ayrıca satıcıya gönderildi. Satıcı cevabı Mesajlarım alanında görünecek.', 'ok');
     }
     function showCartStep(step) {
       const steps = ['cart', 'checkout', 'payment'];

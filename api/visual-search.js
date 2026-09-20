@@ -1,3 +1,5 @@
+import { generateGemini, geminiFailure } from '../lib/gemini.js';
+
 const ALLOWED_HOSTS = ['bagmancikuyumculuk.com.tr', 'www.bagmancikuyumculuk.com.tr', 'localhost', '127.0.0.1'];
 
 function originAllowed(req) {
@@ -40,26 +42,21 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ ok: false, reason: 'Method not allowed' });
   if (!originAllowed(req)) return res.status(403).json({ ok: false, reason: 'Origin denied' });
-  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GOOGLE_GEMINI_API_KEY;
-  if (!apiKey) return res.status(200).json({ ok: false, reason: 'GEMINI_API_KEY missing' });
 
   const image = String(req.body?.image || '');
   const match = image.match(/^data:(image\/(?:jpeg|jpg|png|webp));base64,([A-Za-z0-9+/=]+)$/i);
   if (!match || match[2].length > 8_000_000) return res.status(400).json({ ok: false, reason: 'Geçerli ve makul boyutta bir görsel gerekli.' });
 
   const prompt = `Sen Bağmancı Kuyumculuk görsel arama motorusun. Görseldeki baskın takı veya saat modelini incele. Sadece geçerli JSON döndür, markdown kullanma. kategori yalnızca bilezik, yuzuk, kolye, kupe, akitma, saat olabilir. altKategori yalnızca burma, kelepce, baget, urfa_akitmasi, frenk_bagi olabilir. ayar yalnızca 22 veya 14 olsun; emin değilsen boş string kullan. ozellikler ve aramaTerimleri kısa Türkçe diziler olsun. Şema: {"kategori":"","altKategori":"","ayar":"","ozellikler":[],"aramaTerimleri":[]}`;
-  const model = process.env.GEMINI_VISUAL_MODEL || 'gemini-2.5-flash';
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
+  try {
+    const text = await generateGemini({
+      model: process.env.GEMINI_VISUAL_MODEL,
       contents: [{ role: 'user', parts: [{ text: prompt }, { inline_data: { mime_type: match[1], data: match[2] } }] }],
-      generationConfig: { temperature: 0.1, maxOutputTokens: 420, responseMimeType: 'application/json' }
-    })
-  });
-  if (!response.ok) return res.status(502).json({ ok: false, reason: 'Görsel analiz servisi yanıt vermedi.' });
-  const data = await response.json();
-  const text = data?.candidates?.[0]?.content?.parts?.map(part => part.text || '').join(' ').trim();
-  try { return res.status(200).json({ ok: true, analysis: normalizeAnalysis(parseJson(text)) }); }
-  catch (error) { return res.status(502).json({ ok: false, reason: 'Görsel analiz sonucu okunamadı.' }); }
+      generationConfig: { temperature: 0.1, responseMimeType: 'application/json' }
+    });
+    let analysis;
+    try { analysis = normalizeAnalysis(parseJson(text)); }
+    catch { return res.status(502).json({ ok: false, code: 'AI_INVALID_RESULT', reason: 'Görsel analiz sonucu okunamadı. Lütfen tekrar deneyin.' }); }
+    return res.status(200).json({ ok: true, analysis });
+  } catch (error) { return geminiFailure(error, res); }
 }
