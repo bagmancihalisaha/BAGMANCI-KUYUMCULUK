@@ -35,7 +35,7 @@ test('Gemini request and endpoint regressions', async t => {
     assert.match(calls[1], /gemini-3\.6-flash/);
   });
   await t.test('quota and authentication failures have distinct codes without retries', async t => {
-    for (const [status, code] of [[429, 'AI_QUOTA'], [403, 'AI_AUTH'], [404, 'AI_MODEL_UNAVAILABLE']]) {
+    for (const [status, code] of [[429, 'AI_QUOTA'], [403, 'AI_AUTH']]) {
       let calls = 0;
       t.mock.method(globalThis, 'fetch', async () => { calls++; return new Response('{}', { status }); });
       await assert.rejects(generateGemini(request), { code });
@@ -50,12 +50,21 @@ test('Gemini request and endpoint regressions', async t => {
     await assert.rejects(generateGemini(request), { code: 'AI_NOT_CONFIGURED' });
     process.env.GEMINI_API_KEY = 'test-secret';
   });
-  await t.test('temporary provider failure retries and can recover', async t => {
+  await t.test('busy model switches to the independent vision model', async t => {
     let calls = 0;
-    t.mock.method(globalThis, 'fetch', async () => ++calls === 1
-      ? new Response(JSON.stringify({ error: { status: 'UNAVAILABLE', message: 'Overloaded' } }), { status: 503 })
-      : response('Recovered'));
+    t.mock.method(globalThis, 'fetch', async (url, options) => {
+      if (++calls === 1) return new Response(JSON.stringify({ error: { status: 'UNAVAILABLE', message: 'Overloaded' } }), { status: 503 });
+      assert.match(url, /gemini-3\.5-flash-lite:generateContent$/);
+      assert.deepEqual(JSON.parse(options.body).contents, request.contents);
+      return response('Recovered');
+    });
     assert.equal(await generateGemini(request), 'Recovered');
+    assert.equal(calls, 2);
+  });
+  await t.test('missing models exhaust the finite fallback list', async t => {
+    let calls = 0;
+    t.mock.method(globalThis, 'fetch', async () => { calls++; return new Response('{}', { status: 404 }); });
+    await assert.rejects(generateGemini(request), { code: 'AI_MODEL_UNAVAILABLE' });
     assert.equal(calls, 2);
   });
   await t.test('permanent image rejection preserves status and redacts credentials in logs', async t => {
