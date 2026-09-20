@@ -47,7 +47,8 @@ export default async function handler(req, res) {
   if (!match || match[2].length > 8_000_000) return res.status(400).json({ ok: false, reason: 'Geçerli ve makul boyutta bir görsel gerekli.' });
 
   const prompt = `Sen Bağmancı Kuyumculuk görsel arama motorusun. Görseldeki baskın takı veya saat modelini incele. Sadece geçerli JSON döndür, markdown kullanma. kategori yalnızca bilezik, yuzuk, kolye, kupe, akitma, saat olabilir. altKategori yalnızca burma, kelepce, baget, urfa_akitmasi, frenk_bagi olabilir. ayar yalnızca 22 veya 14 olsun; emin değilsen boş string kullan. ozellikler ve aramaTerimleri kısa Türkçe diziler olsun. Şema: {"kategori":"","altKategori":"","ayar":"","ozellikler":[],"aramaTerimleri":[]}`;
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(process.env.GEMINI_API_KEY)}`, {
+  const model = process.env.GEMINI_VISUAL_MODEL || 'gemini-2.5-flash';
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(process.env.GEMINI_API_KEY)}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
