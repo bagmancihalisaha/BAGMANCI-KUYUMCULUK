@@ -2,7 +2,7 @@ body.app-views, body.app-views.modal-page-open { overflow: auto !important; padd
 body.app-views [data-view-hidden="true"] { display: none !important; }
 body.app-views .app-page { position: static !important; inset: auto !important; width: 100% !important; height: auto !important; min-height: calc(100dvh - 150px) !important; overflow: visible !important; padding: 0 !important; background: var(--bg-base) !important; z-index: auto !important; transform: none !important; }
 body.app-views .app-page > .modal-box { position: static !important; width: min(1180px, 100%) !important; max-width: 1180px !important; height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important; margin: 0 auto !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; }
-body.app-views .app-page .page-topbar { position: static; z-index: auto; }
+body.app-views .app-page .page-topbar { display: none !important; }
 body.app-views .app-page .page-topbar > .page-close:first-child, body.app-views .app-page .cart-close, body.app-views .search-cancel { display: none; }
 body.app-views #anasayfa { z-index: 20; }
 body.app-views .view-bottom-nav { z-index: 30 !important; }
@@ -16,12 +16,16 @@ body.app-views .view-header-brand .header-location { justify-content: center; fl
 body.app-views .view-header-row .theme-control, body.app-views .view-header-row .header-actions { position: relative; inset: auto; transform: none; width: 90px; flex: 0 0 90px; z-index: 1; }
 body.app-views .view-header-row .header-actions { justify-content: flex-end; }
 body.app-views .theme-menu { left: 0; right: auto; top: calc(100% + 8px); }
-.view-back-bar { position: fixed; top: 16px; left: 16px; z-index: 120; margin: 0; padding: 0; pointer-events: none; }
-.view-back-button { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; padding: 0; background: transparent; color: #f5eedc; border: 0; border-radius: 0; font: inherit; cursor: pointer; pointer-events: auto; transition: opacity .15s ease, transform .15s ease; }
-.view-back-button i { font-size: 20px; font-weight: 400; line-height: 1; }
+.view-back-bar { position: sticky; top: 0; z-index: 110; display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; width: 100%; padding: 12px 16px; background: rgba(2, 7, 6, 0.96); border-bottom: 1px solid rgba(212,175,55,.18); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.view-back-button { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; padding: 0; background: rgba(255,255,255,.05); color: #d4af37; border: 1px solid rgba(212,175,55,.25); border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,.3); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); cursor: pointer; transition: transform .15s ease, opacity .15s ease, background .15s ease; }
+.view-back-button svg { width: 20px; height: 20px; display: block; }
+.view-back-title { min-width: 0; overflow: hidden; color: #f5eedc; font: 700 20px/1.2 'Cormorant Garamond', serif; letter-spacing: .6px; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+.view-back-spacer { width: 44px; height: 38px; }
 .view-back-button:active { opacity: .6; transform: scale(.95); }
 .view-back-button:focus-visible { outline: 2px solid rgba(212,175,55,.55); outline-offset: 3px; }
-body.app-views[data-theme="day"] .view-back-button { color: #8c6b23; }
+body.app-views[data-theme="day"] .view-back-bar { background: rgba(255,250,235,.96); border-bottom-color: rgba(140,107,35,.2); }
+body.app-views[data-theme="day"] .view-back-button { background: rgba(140,107,35,.08); color: #8c6b23; border-color: rgba(140,107,35,.2); box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+body.app-views[data-theme="day"] .view-back-title { color: #1e2321; }
 body.app-views .site-search { left: auto; transform: none; width: min(600px, 100%); max-width: 600px; margin: 14px auto 0; }
 #katalog-baslik, #katalog { scroll-margin-top: 130px; }
 body.app-views .theme-button, body.app-views .header-action-btn { position: relative; inset: auto; transform: none; width: 40px; height: 40px; aspect-ratio: 1 / 1; flex: 0 0 40px; display: flex; align-items: center; justify-content: center; padding: 0; border: 1px solid rgba(212,175,55,.35); border-radius: 22.5%; background: linear-gradient(165deg, rgba(35,42,38,.8) 0%, rgba(18,22,20,.95) 100%) !important; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: #d4af37 !important; box-shadow: 0 4px 12px rgba(0,0,0,.5), inset 0 1px 1px rgba(255,255,255,.15) !important; cursor: pointer; transition: transform .12s ease, filter .12s ease, box-shadow .12s ease; }

@@ -42,7 +42,7 @@
   headerRow.append(document.getElementById('themeControl'), brand, header.querySelector('.header-actions'));
   header.prepend(headerRow);
   const backBar = document.createElement('div'); backBar.className = 'view-back-bar';
-  backBar.innerHTML = '<button class="view-back-button" type="button" aria-label="Geri dön" title="Geri dön"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>';
+  backBar.innerHTML = '<button class="view-back-button" type="button" aria-label="Geri dön" title="Geri dön"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 5.5 9 12l6.5 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg></button><span class="view-back-title"></span><span class="view-back-spacer" aria-hidden="true"></span>';
   home.before(backBar);
   document.body.classList.add('app-views');
   for (const id of Object.values(pageIds)) {
@@ -61,6 +61,11 @@
   const originalModal = modalGoster, originalCategory = katalogAc;
   const originalAccount = openAccountSection, originalCartStep = showCartStep;
   const show = (node, visible) => { if (node) { node.dataset.viewHidden = String(!visible); node.hidden = !visible; } };
+  const updateBackTitle = state => {
+    const titles = {catalog: state.category || 'Katalog', cart: 'Sepet', account: 'Hesabım', search: 'Arama', messages: 'Mesajlarım', notifications: 'Bildirimler', calculator: 'Hesap Makinesi'};
+    const title = backBar.querySelector('.view-back-title');
+    if (title) title.textContent = titles[state.view] || '';
+  };
   function hashFor(state) {
     const hashes = {home:state.anchor === 'borsa' ? 'borsa' : 'home',catalog:'katalog',cart:'sepet',account:'hesabim',search:'search',messages:'account-messages',notifications:'duyurular',calculator:'hesap-makinesi'};
     const params = new URLSearchParams();
@@ -93,8 +98,9 @@
       document.getElementById('themeControl')?.classList.remove('open');
       show(home,state.view === 'home'); show(market,state.view === 'home');
       show(catalog,state.view === 'home' || state.view === 'catalog');
-      show(header,['home','catalog'].includes(state.view));
+      show(header,state.view === 'home');
       show(footer,state.view === 'home'); show(backBar,state.view !== 'home');
+      updateBackTitle(state);
       for (const [view,id] of Object.entries(pageIds)) {
         const node = document.getElementById(id); show(node,view === state.view); node.style.display = view === state.view ? 'block' : 'none';
       }
