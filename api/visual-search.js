@@ -50,7 +50,7 @@ export default async function handler(req, res) {
   const prompt = `Sen Bağmancı Kuyumculuk görsel arama motorusun. Görseldeki baskın takı veya saat modelini incele. Sadece geçerli JSON döndür, markdown kullanma. kategori yalnızca bilezik, yuzuk, kolye, kupe, akitma, saat olabilir. altKategori yalnızca burma, kelepce, baget, urfa_akitmasi, frenk_bagi olabilir. ayar yalnızca 22 veya 14 olsun; emin değilsen boş string kullan. ozellikler ve aramaTerimleri kısa Türkçe diziler olsun. Şema: {"kategori":"","altKategori":"","ayar":"","ozellikler":[],"aramaTerimleri":[]}`;
   try {
     const text = await generateGemini({
-      model: process.env.GEMINI_VISUAL_MODEL,
+      model: process.env.GEMINI_VISUAL_MODEL || 'gemini-3.5-flash-lite',
       contents: [{ role: 'user', parts: [{ text: prompt }, { inline_data: { mime_type: match[1], data: match[2] } }] }],
       generationConfig: { temperature: 0.1, responseMimeType: 'application/json' }
     });

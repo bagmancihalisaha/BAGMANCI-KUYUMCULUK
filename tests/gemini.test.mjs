@@ -88,7 +88,11 @@ test('Gemini request and endpoint regressions', async t => {
   });
   await t.test('visual endpoint produces parsed JSON and assistant produces text', async t => {
     const analysis = { kategori: 'bilezik', altKategori: 'burma', ayar: '', ozellikler: ['örgü'], aramaTerimleri: ['burma'] };
-    t.mock.method(globalThis, 'fetch', async (_, options) => response(JSON.parse(options.body).generationConfig.responseMimeType ? JSON.stringify(analysis) : 'Burma bilezik modelini inceleyebilirsiniz.'));
+    t.mock.method(globalThis, 'fetch', async (url, options) => {
+      const visual = JSON.parse(options.body).generationConfig.responseMimeType;
+      if (visual) assert.match(url, /gemini-3\.5-flash-lite:generateContent$/);
+      return response(visual ? JSON.stringify(analysis) : 'Burma bilezik modelini inceleyebilirsiniz.');
+    });
     function res() { return { setHeader() {}, status(value) { this.statusCode = value; return this; }, json(value) { this.body = value; return this; } }; }
     const visualResult = res();
     await visualSearch({ method: 'POST', headers: {}, body: { image: 'data:image/jpeg;base64,YQ==' } }, visualResult);
