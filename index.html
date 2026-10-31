@@ -2398,6 +2398,16 @@
       }
     }
 
+    function validateMarketPayload(data) {
+      if (!Array.isArray(data) || !data.length) throw new Error('ŞUKOB fiyat listesi boş döndü.');
+      const refreshNotice = data.some(item => {
+        const type = String(item?.type || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('tr-TR');
+        return type.includes('lutfen sayfayi yenileyiniz');
+      });
+      const hasPrices = data.some(item => Number(item?.buyPrice) > 0 && Number(item?.sellPrice) > 0);
+      if (refreshNotice || !hasPrices) throw new Error('ŞUKOB şu anda fiyat vermiyor; yenileme uyarısı veya boş fiyat listesi döndü.');
+    }
+
     function formatMarketDate(lastUpdate) {
       if (typeof lastUpdate === 'string' && lastUpdate.trim()) {
         return lastUpdate.trim().split(' ')[0];
@@ -2417,6 +2427,7 @@
         for (const url of feedUrls()) {
           try {
             const data = await fetchJsonWithTimeout(url);
+            validateMarketPayload(data);
             renderMarketRows(data);
             const lastUpdate = data.find(item => item.lastUpdate)?.lastUpdate;
             syncInfo.innerText = formatMarketDate(lastUpdate);
@@ -2428,10 +2439,11 @@
         throw lastError || new Error('Canlı veri alınamadı');
       } catch (error) {
         console.warn('SUKOB canlı veri alınamadı:', error);
-        if (!tableBody.dataset.hasLiveData) {
-          tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--text-muted); padding:16px;">Canlı veri bekleniyor, birazdan tekrar denenecek...</td></tr>';
-        }
-        syncInfo.innerText = new Date().toLocaleDateString('tr-TR');
+        tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--text-muted); padding:16px;">ŞUKOB canlı fiyat vermiyor. Kaynak yeniden yanıt verdiğinde fiyatlar otomatik güncellenecek.</td></tr>';
+        tableBody.dataset.hasLiveData = '';
+        latestMarketData = [];
+        renderGoldCalculatorOptions();
+        syncInfo.innerText = 'Canlı veri yok';
       } finally {
         marketRequestRunning = false;
       }
@@ -4282,7 +4294,10 @@
     fetchVisitorCount();
 
     setInterval(updateClock, 1000);
-    setInterval(fetchMarketData, 1000);
+    setInterval(() => { if (!document.hidden) fetchMarketData(); }, 60000);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) fetchMarketData();
+    });
     setInterval(fetchVisitorCount, 10000);
     setInterval(() => loadPublicAnnouncements().catch(() => {}), 30000);
   </script>
