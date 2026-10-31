@@ -68,6 +68,8 @@ body[data-theme="day"] #borsa .market-highlights .market-quote-card {
   #borsa .market-highlights .market-quote-card { padding: 10px 8px; }
   #borsa .market-highlights .market-quote-card h3 { font-size: 14px; margin-bottom: 5px; }
   #borsa .market-highlights .market-quote-prices { gap: 7px; }
+  #borsa .market-highlights .market-quote-prices > div:first-child { order: 2; }
+  #borsa .market-highlights .market-quote-prices > div:nth-child(2) { order: 1; }
   #borsa .market-highlights .market-price { font-size: 17px; }
   #borsa .market-currencies .market-price { font-size: 14px; }
   #borsa .market-currencies h3 { min-height: 0; }
