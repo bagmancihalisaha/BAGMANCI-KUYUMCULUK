@@ -1587,6 +1587,7 @@
     .gold-calculator { padding:20px; border:1px solid rgba(212,175,55,.25); border-radius:16px; background:rgba(255,255,255,.025); backdrop-filter:blur(8px); box-shadow:0 16px 40px rgba(0,0,0,.42), inset 0 0 20px rgba(212,175,55,.035); }
     .gold-calculator-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
     .gold-field { display:flex; flex-direction:column; gap:7px; }
+    #goldWorkmanshipField[hidden] { display:none !important; }
     .gold-field.full { grid-column:1 / -1; }
     .gold-field label, .gold-field legend { color:var(--text-muted); font-size:11px; font-weight:700; letter-spacing:.6px; }
     .gold-field select, .gold-field input { width:100%; min-height:44px; border:1px solid var(--card-border); border-radius:9px; padding:0 12px; background:rgba(2,6,5,.72); color:var(--text-pearl); font:500 14px inherit; outline:none; }
@@ -2188,8 +2189,9 @@
         <div class="gold-calculator">
           <div class="gold-calculator-grid">
             <div class="gold-field full"><label for="goldCalculatorProduct">Piyasa Kalemi</label><select id="goldCalculatorProduct" onchange="updateGoldCalculator()"></select></div>
-            <div class="gold-field full"><label>İşlem Tipi</label><div class="gold-operation" role="group" aria-label="İşlem tipi"><button id="goldSellOperation" class="active" type="button" onclick="setGoldOperation('sell')">Müşteri Alıyor<br><small>(Satış Fiyatı)</small></button><button id="goldBuyOperation" type="button" onclick="setGoldOperation('buy')">Müşteri Satıyor<br><small>(Bozdurma / Alış)</small></button></div></div>
+            <div class="gold-field full"><label>İşlem Tipi</label><div class="gold-operation" role="group" aria-label="İşlem tipi"><button id="goldSellOperation" class="active" type="button" onclick="setGoldOperation('sell')">Müşteri Alıyor<br><small>(Satış + İşçilik)</small></button><button id="goldBuyOperation" type="button" onclick="setGoldOperation('buy')">Müşteri Satıyor<br><small>(Bozdurma / Alış)</small></button></div></div>
             <div class="gold-field full"><label id="goldAmountLabel" for="goldCalculatorAmount">Gram Giriniz</label><input id="goldCalculatorAmount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00" oninput="updateGoldCalculator()"></div>
+            <div class="gold-field full" id="goldWorkmanshipField"><label id="goldWorkmanshipLabel" for="goldWorkmanship">İşçilik / gram (₺)</label><input id="goldWorkmanship" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00" oninput="updateGoldCalculator()"></div>
           </div>
           <div class="gold-summary" aria-live="polite">
             <div class="gold-summary-card"><span>Anlık Birim Kur</span><strong id="goldUnitPrice">-- ₺</strong></div>
@@ -2607,10 +2609,17 @@
       const item = latestMarketData.find(entry => normalizeProductKey(entry) === definition[0]);
       const unitPrice = Number(item?.[goldCalculatorOperation === 'sell' ? 'sellPrice' : 'buyPrice']) || 0;
       const amount = Math.max(0, Number(amountInput.value) || 0);
+      const workmanshipField = document.getElementById('goldWorkmanshipField');
+      const workmanshipInput = document.getElementById('goldWorkmanship');
+      const isCurrency = definition[0] === 'USD' || definition[0] === 'EUR';
+      const includeWorkmanship = goldCalculatorOperation === 'sell' && !isCurrency;
+      workmanshipField.hidden = !includeWorkmanship;
+      document.getElementById('goldWorkmanshipLabel').textContent = `İşçilik / ${definition[2] === 'gram' ? 'gram' : 'adet'} (₺)`;
+      const workmanship = includeWorkmanship ? Math.max(0, Number(workmanshipInput.value) || 0) : 0;
       document.getElementById('goldAmountLabel').textContent = definition[2] === 'gram' ? 'Gram Giriniz' : 'Adet Giriniz';
       document.getElementById('goldUnitPrice').textContent = unitPrice ? `${formatPrice(unitPrice, definition[0])} ₺` : '-- ₺';
       document.getElementById('goldAmountSummary').textContent = amount ? `${amount.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} ${definition[2] === 'gram' ? 'gr' : 'adet'}` : '0';
-      document.getElementById('goldTotalPrice').textContent = unitPrice ? `${(unitPrice * amount).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₺` : '0,00 ₺';
+      document.getElementById('goldTotalPrice').textContent = unitPrice ? `${((unitPrice + workmanship) * amount).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₺` : '0,00 ₺';
     }
 
     function openCalculatorPage() {
