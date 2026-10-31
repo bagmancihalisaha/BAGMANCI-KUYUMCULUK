@@ -2,7 +2,7 @@ exports.handler = async function(event) {
   const isCount = event.queryStringParameters && event.queryStringParameters.type === 'count';
   const upstream = isCount
     ? 'https://www.sukobfiyat.com/api/countseen/'
-    : 'https://www.sukobfiyat.com/api/prices/';
+    : 'https://www.sukobfiyat.com/api/mainprice/';
 
   try {
     const response = await fetch(`${upstream}?cache=${Date.now()}`, {

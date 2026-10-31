@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   const isCount = req.query && req.query.type === 'count';
   const upstream = isCount
     ? 'https://www.sukobfiyat.com/api/countseen/'
-    : 'https://www.sukobfiyat.com/api/prices/';
+    : 'https://www.sukobfiyat.com/api/mainprice/';
 
   try {
     const response = await fetch(`${upstream}?cache=${Date.now()}`, {

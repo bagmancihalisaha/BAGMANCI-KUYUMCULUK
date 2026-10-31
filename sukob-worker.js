@@ -3,7 +3,7 @@ export default {
     const url = new URL(request.url);
     const upstream = url.pathname.includes('countseen')
       ? 'https://www.sukobfiyat.com/api/countseen/'
-      : 'https://www.sukobfiyat.com/api/prices/';
+      : 'https://www.sukobfiyat.com/api/mainprice/';
 
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: corsHeaders() });

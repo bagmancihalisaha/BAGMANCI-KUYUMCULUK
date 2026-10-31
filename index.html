@@ -2254,7 +2254,7 @@
     let catalogCategories = [];
     let visualPreviewUrl = '';
 
-    const SUKOB_DIRECT_URL = 'https://www.sukobfiyat.com/api/prices/';
+    const SUKOB_DIRECT_URL = 'https://www.sukobfiyat.com/api/mainprice/';
     const SUKOB_PROXY_URL = '/api/sukob';
     const PRODUCT_ORDER = [
       'HAS',
@@ -2308,7 +2308,10 @@
     function normalizeProductKey(item) {
       const url = String(item.url || '').trim();
       const type = String(item.type || '').trim().toLocaleLowerCase('tr-TR');
-      if (url) return url;
+      if (url) {
+        const aliases = { has: 'HAS', '22_ayar_hurda': 'hurda', gumus: 'GMS', usd: 'USD', eur: 'EUR' };
+        return aliases[url.toLocaleLowerCase('tr-TR')] || url;
+      }
       if (type.includes('has')) return 'HAS';
       if (type.includes('22') && type.includes('bilezik')) return '22_ayar_bilezik';
       if (type.includes('hurda')) return 'hurda';
